@@ -33,6 +33,12 @@ const routesProfil = require('./routes/profil');
 // Branche-les sous /api/profil
 app.use('/api/profil', routesProfil);
 
+// Importe les routes sécurisées de tontines.
+const routesTontines = require('./routes/tontines');
+
+// Branche les routes sous /api/tontines.
+app.use('/api/tontines', routesTontines);
+
 // Rend le dossier "uploads" accessible par URL :
 // une photo sera visible sur http://localhost:3000/uploads/nom-du-fichier.jpg
 // path est un outil Node pour construire un chemin de fichier

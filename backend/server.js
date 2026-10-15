@@ -39,6 +39,12 @@ const routesTontines = require('./routes/tontines');
 // Branche les routes sous /api/tontines.
 app.use('/api/tontines', routesTontines);
 
+// Importe les routes de correspondance de contacts.
+const routesContacts = require('./routes/contacts');
+
+// Branche les correspondances sous /api/contacts.
+app.use('/api/contacts', routesContacts);
+
 // Rend le dossier "uploads" accessible par URL :
 // une photo sera visible sur http://localhost:3000/uploads/nom-du-fichier.jpg
 // path est un outil Node pour construire un chemin de fichier

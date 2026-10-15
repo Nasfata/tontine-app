@@ -1,26 +1,42 @@
 // React Native fournit le champ compatible avec les plateformes ciblées.
+import { useState } from 'react';
+// Les composants natifs affichent le libellé, l'erreur et la saisie.
 import { StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
+// Le thème centralise les couleurs, espacements et arrondis.
+import { couleurs, espacements, rayons, taillesTexte } from '../theme';
 
-// Ces propriétés ajoutent un libellé aux options natives de TextInput.
-type ChampTexteProps = TextInputProps & { label: string };
+// Ces propriétés ajoutent un libellé et un état d'erreur au champ natif.
+type ChampTexteProps = TextInputProps & { label: string; erreur?: string };
 
-// ChampTexte affiche un libellé et un champ de saisie cohérent.
-export function ChampTexte({ label, style, ...proprietes }: ChampTexteProps) {
+// ChampTexte affiche un libellé, un champ et un retour d'erreur facultatif.
+export function ChampTexte({ label, erreur, style, editable = true, onFocus, onBlur, ...proprietes }: ChampTexteProps) {
+  // Cet état permet de mettre en valeur le champ au clavier ou au toucher.
+  const [estActif, setEstActif] = useState(false);
   // Le conteneur conserve un espacement uniforme entre libellé et champ.
   return <View style={styles.conteneur}>
     {/* Le label aide à identifier le champ même après saisie. */}
     <Text style={styles.label}>{label}</Text>
     {/* Les propriétés natives restent personnalisables par chaque écran. */}
-    <TextInput {...proprietes} style={[styles.champ, style]} placeholderTextColor="#8292A5" />
+    <TextInput {...proprietes} editable={editable} onFocus={(evenement) => { setEstActif(true); onFocus?.(evenement); }} onBlur={(evenement) => { setEstActif(false); onBlur?.(evenement); }} accessibilityState={{ disabled: !editable }} style={[styles.champ, estActif && styles.focus, !!erreur && styles.champErreur, !editable && styles.desactive, style]} placeholderTextColor={couleurs.secondaire} />
+    {/* Le message apparaît sous le champ quand une erreur est fournie. */}
+    {!!erreur && <Text accessibilityRole="alert" style={styles.erreur}>{erreur}</Text>}
   </View>;
 }
 
-// Les styles définissent les couleurs, bordures et espacements communs.
+// Les styles définissent l'apparence des états dans toutes les vues.
 const styles = StyleSheet.create({
   // Les champs sont séparés verticalement dans le formulaire.
-  conteneur: { gap: 7 },
+  conteneur: { gap: espacements.petit },
   // Le label est lisible sur le fond blanc de la carte.
-  label: { color: '#263B50', fontSize: 14, fontWeight: '600' },
-  // Le champ offre une zone de saisie confortable sur mobile.
-  champ: { minHeight: 50, paddingHorizontal: 14, borderWidth: 1, borderColor: '#D5DEE8', borderRadius: 10, backgroundColor: '#FFFFFF', color: '#16324F', fontSize: 16 },
+  label: { color: couleurs.principal, fontSize: taillesTexte.secondaire, fontWeight: '600' },
+  // Le champ offre une zone de saisie confortable sur toutes les plateformes.
+  champ: { minHeight: 52, paddingHorizontal: espacements.moyen, borderWidth: 1, borderColor: couleurs.bordure, borderRadius: rayons.petit, backgroundColor: couleurs.carte, color: couleurs.principal, fontSize: taillesTexte.corps },
+  // Le focus clavier ou tactile devient visible avec l'accent doré.
+  focus: { borderColor: couleurs.accent, borderWidth: 2 },
+  // Une erreur rend le contour rouge sans masquer le contenu saisi.
+  champErreur: { borderColor: couleurs.erreur },
+  // Un champ non modifiable est légèrement atténué.
+  desactive: { backgroundColor: couleurs.fond, opacity: 0.7 },
+  // Le message d'erreur est placé directement sous sa saisie.
+  erreur: { color: couleurs.erreur, fontSize: taillesTexte.petit },
 });

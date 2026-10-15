@@ -8,9 +8,15 @@
     "scheme": "mobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {
+        "NSContactsUsageDescription": "Cette application utilise vos contacts pour suggérer les membres déjà inscrits."
+      }
     },
     "android": {
+      "permissions": [
+        "android.permission.READ_CONTACTS"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

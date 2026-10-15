@@ -10,7 +10,7 @@ import { useAuth } from '../AuthContext';
 import { appelerApi, ErreurApi } from '../api';
 
 // Ce type couvre les champs attendus des tontines et leurs variantes usuelles.
-type Tontine = { id: number | string; nom: string; role?: string; statut?: string };
+type Tontine = { id: number | string; nom: string; role_code?: string; statut?: string };
 // Ce type accepte une réponse directe ou enveloppée dans une propriété tontines.
 type ReponseTontines = Tontine[] | { tontines?: Tontine[] };
 
@@ -32,6 +32,8 @@ export default function Accueil() {
       try {
         // Le backend peut renvoyer la liste directement ou dans un objet.
         const resultat = await appelerApi<ReponseTontines>('/api/tontines');
+        // Ce journal temporaire facilite la vérification des champs renvoyés par l'API.
+        console.log('Réponse GET /api/tontines :', resultat);
         // On normalise les deux formats en une liste.
         const liste = Array.isArray(resultat) ? resultat : resultat.tontines ?? [];
         // Les résultats ne sont appliqués que si l'écran est toujours monté.
@@ -83,7 +85,7 @@ export default function Accueil() {
         {/* Le nom du groupe est mis en évidence. */}
         <Text style={styles.titreCarte}>{tontine.nom}</Text>
         {/* Le rôle est traduit en libellé lisible. */}
-        <Text style={styles.texte}>Rôle : {tontine.role?.toLowerCase() === 'gerant' || tontine.role?.toLowerCase() === 'gérant' ? 'Gérant' : 'Membre'}</Text>
+        <Text style={styles.texte}>Rôle : {tontine.role_code?.toLowerCase() === 'gerant' ? 'Gérant' : 'Membre'}</Text>
         {/* Le statut brut du backend est affiché, avec un texte de repli. */}
         <Text style={styles.texte}>Statut : {tontine.statut ?? 'Non précisé'}</Text>
       </View>)}

@@ -107,6 +107,10 @@ router.get('/', async (req, res) => {
 router.post('/:id/membres', async (req, res) => {
   // Le numéro est lu puis normalisé avant toute recherche en base.
   const telephone = normaliserTelephone(req.body?.telephone);
+  // L'identifiant peut venir d'une suggestion de correspondance.
+  const utilisateurIdCible = req.body?.utilisateurId;
+  // Ce drapeau distingue un identifiant utilisateur valide d'un numéro saisi.
+  const utiliserIdentifiant = Number.isInteger(utilisateurIdCible) && utilisateurIdCible > 0;
   // On garde la connexion pour vérifier le quota et inscrire le membre dans une transaction.
   let connexion;
   // Ce drapeau indique si les requêtes doivent encore être annulées.
@@ -117,7 +121,7 @@ router.post('/:id/membres', async (req, res) => {
     // Un utilisateur absent ou non-gérant ne peut pas ajouter de membre.
     if (roleCode !== 'gerant') return res.status(403).json({ erreur: 'Seul le gérant peut ajouter un membre' });
     // Un numéro vide ne peut pas désigner un compte à ajouter.
-    if (!telephone) return res.status(400).json({ erreur: 'Un numéro de téléphone est requis' });
+    if (!utiliserIdentifiant && !telephone) return res.status(400).json({ erreur: 'Un numéro de téléphone ou un utilisateur valide est requis' });
     // Une connexion dédiée permet de verrouiller la tontine pendant l'ajout.
     connexion = await db.getConnection();
     // La transaction empêche plusieurs ajouts simultanés de dépasser la capacité.
@@ -146,14 +150,16 @@ router.post('/:id/membres', async (req, res) => {
       return res.status(400).json({ erreur: 'La tontine a déjà atteint son nombre maximal de membres' });
     }
     // La recherche porte uniquement sur le numéro fourni, jamais sur une liste d'utilisateurs.
-    const [utilisateurs] = await connexion.query(
-      'SELECT id FROM Utilisateur WHERE telephone = ?',
-      [telephone]
-    );
+    const [utilisateurs] = utiliserIdentifiant
+      ? await connexion.query('SELECT id FROM Utilisateur WHERE id = ?', [utilisateurIdCible])
+      : await connexion.query('SELECT id FROM Utilisateur WHERE telephone = ?', [telephone]);
     // Aucun compte ne correspond : l'invitation sera gérée dans une version ultérieure.
     if (utilisateurs.length === 0) {
       await connexion.rollback();
       transactionDemarree = false;
+      // Un identifiant utilisateur doit désigner un compte existant sans déclencher d'invitation.
+      if (utiliserIdentifiant) return res.status(404).json({ erreur: 'Utilisateur introuvable' });
+      // Une recherche par numéro sans compte indique qu'une invitation future est pertinente.
       return res.status(404).json({ erreur: 'Aucun compte ne correspond à ce numéro', invitation: true });
     }
     // On évite de créer une seconde participation pour le même compte.

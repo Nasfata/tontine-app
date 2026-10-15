@@ -1,0 +1,6 @@
+# Ne pas envoyer les bibliothèques (trop lourdes, on les réinstalle avec npm install)
+node_modules
+
+# Ne pas envoyer les secrets
+.env
+uploads

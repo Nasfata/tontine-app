@@ -5,9 +5,9 @@ import { ActivityIndicator, Button, Pressable, ScrollView, StyleSheet, Text, Vie
 // Expo Router fournit les liens et le type des destinations.
 import { Link, type Href } from 'expo-router';
 // Le contexte donne le profil courant et l'action de déconnexion.
-import { useAuth } from '../AuthContext';
+import { useAuth } from '../../AuthContext';
 // appelerApi ajoute le jeton et fournit le statut HTTP en cas d'erreur.
-import { appelerApi, ErreurApi } from '../api';
+import { appelerApi, ErreurApi } from '../../api';
 
 // Ce type couvre les champs attendus des tontines et leurs variantes usuelles.
 type Tontine = { id: number | string; nom: string; role_code?: string; statut?: string };

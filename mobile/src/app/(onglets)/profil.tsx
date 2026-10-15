@@ -5,14 +5,14 @@ import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView, S
 // Expo ImagePicker ouvre la photothèque native ou le sélecteur du navigateur.
 import * as ImagePicker from 'expo-image-picker';
 // Le contexte fournit le profil local à actualiser après les modifications.
-import { useAuth } from '../AuthContext';
+import { useAuth } from '../../AuthContext';
 // appelerApi gère les requêtes authentifiées et les réponses d'erreur.
-import { appelerApi } from '../api';
+import { appelerApi } from '../../api';
 // API_URL sert à former l'adresse complète de la photo téléversée.
-import { API_URL } from '../config';
+import { API_URL } from '../../config';
 // Les contrôles partagés gardent le même style que les autres formulaires.
-import { Bouton } from '../components/Bouton';
-import { ChampTexte } from '../components/ChampTexte';
+import { Bouton } from '../../components/Bouton';
+import { ChampTexte } from '../../components/ChampTexte';
 
 // Ces propriétés représentent le profil public renvoyé par le backend.
 type ProfilUtilisateur = { id: number; nom: string; telephone: string; photo: string | null; date_creation?: string };

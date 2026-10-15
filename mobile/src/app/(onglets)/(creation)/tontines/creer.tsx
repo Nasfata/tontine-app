@@ -5,7 +5,7 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text
 // Expo Router construit la destination dynamique après la création.
 import { router, type Href } from 'expo-router';
 // appelerApi envoie les données au backend avec le jeton courant.
-import { appelerApi } from '../../api';
+import { appelerApi } from '../../../../api';
 // Ces fréquences correspondent aux choix acceptés par le backend.
 type Frequence = 'quotidien' | 'hebdomadaire' | 'mensuel';
 // Cette réponse fournit l'identifiant de la tontine créée.

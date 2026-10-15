@@ -1,7 +1,7 @@
 // React charge le détail et conserve les messages de l'écran.
 import { useEffect, useState } from 'react';
 // Expo Router lit le paramètre dynamique de l'URL.
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 // React Native fournit l'interface utilisable sur toutes les plateformes.
 import { ActivityIndicator, Button, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 // appelerApi ajoute le jeton et lit la réponse JSON du backend.
@@ -21,12 +21,11 @@ const libellesFrequence: Record<string, string> = { quotidien: 'Quotidien', hebd
 // Cet écran charge et affiche le détail d'une tontine.
 export default function DetailTontine() {
   // L'identifiant provient du segment dynamique [id].
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, rafraichir } = useLocalSearchParams<{ id: string; rafraichir?: string }>();
   // Ces états stockent le détail et les retours de chargement.
   const [detail, setDetail] = useState<ReponseDetail | null>(null);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState('');
-  const [messageMembre, setMessageMembre] = useState('');
   // Le détail est rechargé si l'identifiant de route change.
   useEffect(() => {
     // Ce drapeau protège l'écran contre les réponses après démontage.
@@ -50,7 +49,7 @@ export default function DetailTontine() {
     void chargerDetail();
     // On évite une mise à jour React si l'utilisateur quitte l'écran.
     return () => { actif = false; };
-  }, [id]);
+  }, [id, rafraichir]);
   // La requête affiche un indicateur centré pendant son traitement.
   if (chargement) return <View style={styles.centre}><ActivityIndicator size="large" color="#1769AA" /></View>;
   // Une réponse absente est présentée comme une erreur lisible.
@@ -101,9 +100,8 @@ export default function DetailTontine() {
         </View>;
       })}
       {/* Un gérant voit l'action d'ajout prévue pour la prochaine étape. */}
-      {detail.role_code.toLowerCase() === 'gerant' && <Pressable accessibilityRole="button" onPress={() => setMessageMembre('L’ajout de membres sera disponible prochainement.')} style={styles.boutonAjouter}><Text style={styles.texteAjouter}>Ajouter un membre</Text></Pressable>}
+      {detail.role_code.toLowerCase() === 'gerant' && <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/tontines/ajouter-membre', params: { id: String(detail.tontine.id) } } as Href)} style={styles.boutonAjouter}><Text style={styles.texteAjouter}>Ajouter un membre</Text></Pressable>}
       {/* Le texte explique pourquoi l'action n'ouvre pas encore de formulaire. */}
-      {!!messageMembre && <Text style={styles.texteAide}>{messageMembre}</Text>}
     </View>
     {/* Cette zone réservée permettra d'intégrer les sections de cotisations. */}
     <View style={styles.zoneEquipe}><Text style={styles.sousTitre}>Cotisations</Text><Text style={styles.texteAide}>Section réservée à l’équipe cotisations.</Text></View>

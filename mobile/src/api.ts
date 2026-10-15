@@ -6,7 +6,7 @@ import { API_URL } from './config';
 // Cette erreur conserve le code HTTP pour les écrans qui gèrent un cas précis.
 export class ErreurApi extends Error {
   // Le statut permet notamment de reconnaître une route encore absente.
-  constructor(message: string, public readonly statut: number) {
+  constructor(message: string, public readonly statut: number, public readonly invitation = false) {
     // Le message backend reste le message affiché à l'utilisateur.
     super(message);
     // Le nom distingue cette erreur d'une erreur réseau standard.
@@ -32,7 +32,7 @@ export async function appelerApi<T = unknown>(chemin: string, options: RequestIn
   // On tente de lire la réponse JSON, y compris pour les réponses d'erreur.
   const donnees = await reponse.json().catch(() => ({})) as Record<string, unknown>;
   // En cas d'échec, le message d'erreur du backend est transmis à l'appelant.
-  if (!reponse.ok) throw new ErreurApi(typeof donnees.erreur === 'string' ? donnees.erreur : 'Une erreur est survenue.', reponse.status);
+  if (!reponse.ok) throw new ErreurApi(typeof donnees.erreur === 'string' ? donnees.erreur : 'Une erreur est survenue.', reponse.status, donnees.invitation === true);
   // On renvoie les données avec le type choisi par l'appelant.
   return donnees as T;
 }

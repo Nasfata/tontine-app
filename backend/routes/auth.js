@@ -9,6 +9,8 @@ const jwt = require('jsonwebtoken');
 
 // Notre connexion MySQL (le fichier db.js est un dossier plus haut, d'où "../")
 const db = require('../db');
+// Cette fonction harmonise le numéro avant les recherches et les écritures.
+const { normaliserTelephone } = require('../utils/telephone');
 
 // Un Router permet de ranger nos routes dans un fichier séparé de server.js
 const router = express.Router();
@@ -31,7 +33,9 @@ router.post('/inscription', async (req, res) => {
   try {
     // req.body = le JSON envoyé par l'app.
     // On "extrait" les 3 champs dont on a besoin.
-    const { nom, telephone, motDePasse } = req.body;
+    const { nom, telephone: telephoneSaisi, motDePasse } = req.body;
+    // Le numéro enregistré ne contient pas d'espaces, points ou tirets.
+    const telephone = normaliserTelephone(telephoneSaisi);
 
     // Vérifie que les 3 champs sont remplis
     if (!nom || !telephone || !motDePasse) {
@@ -91,7 +95,9 @@ router.post('/inscription', async (req, res) => {
 router.post('/connexion', async (req, res) => {
   try {
     // On récupère téléphone et mot de passe envoyés par l'app
-    const { telephone, motDePasse } = req.body;
+    const { telephone: telephoneSaisi, motDePasse } = req.body;
+    // La même normalisation est utilisée pour rechercher le compte.
+    const telephone = normaliserTelephone(telephoneSaisi);
 
     // Vérifie que les deux champs sont remplis
     if (!telephone || !motDePasse) {

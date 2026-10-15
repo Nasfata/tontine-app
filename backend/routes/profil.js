@@ -9,6 +9,8 @@ const multer = require('multer');
 const db = require('../db');
 // Notre middleware qui vérifie que l'utilisateur est connecté
 const verifierToken = require('../middleware/auth');
+// Cette fonction renvoie partout les numéros sous un format cohérent.
+const { normaliserTelephone } = require('../utils/telephone');
 
 const router = express.Router();
 
@@ -71,7 +73,8 @@ router.get('/', async (req, res) => {
     }
 
     // lignes[0] = l'utilisateur (sans le hash du mot de passe)
-    res.json(lignes[0]);
+    // Le numéro renvoyé suit le même format que celui enregistré par les routes.
+    res.json({ ...lignes[0], telephone: normaliserTelephone(lignes[0].telephone) });
   } catch (err) {
     console.error('Erreur lecture profil :', err.message);
     res.status(500).json({ erreur: 'Erreur serveur' });
@@ -83,7 +86,9 @@ router.get('/', async (req, res) => {
 // ======================================================================
 router.put('/', async (req, res) => {
   try {
-    const { nom, telephone } = req.body;
+    const { nom, telephone: telephoneSaisi } = req.body;
+    // Le numéro est normalisé avant la vérification de doublon et la mise à jour.
+    const telephone = normaliserTelephone(telephoneSaisi);
 
     // Les deux champs sont obligatoires
     if (!nom || !telephone) {

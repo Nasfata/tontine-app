@@ -6,6 +6,8 @@ const db = require('../db');
 const verifierToken = require('../middleware/auth');
 // Cette fonction vérifie le rôle d'un utilisateur dans une tontine.
 const { verifierRole } = require('../utils/roles');
+// Cette fonction normalise les numéros reçus du formulaire d'ajout.
+const { normaliserTelephone } = require('../utils/telephone');
 
 // Le routeur regroupe les routes liées aux tontines.
 const router = express.Router();
@@ -98,6 +100,101 @@ router.get('/', async (req, res) => {
     console.error('Erreur liste tontines :', err.message);
     // Le client reçoit un message générique au format JSON.
     return res.status(500).json({ erreur: 'Erreur serveur lors de la lecture des tontines' });
+  }
+});
+
+// Cette route permet au gérant d'ajouter un utilisateur déjà inscrit par téléphone.
+router.post('/:id/membres', async (req, res) => {
+  // Le numéro est lu puis normalisé avant toute recherche en base.
+  const telephone = normaliserTelephone(req.body?.telephone);
+  // On garde la connexion pour vérifier le quota et inscrire le membre dans une transaction.
+  let connexion;
+  // Ce drapeau indique si les requêtes doivent encore être annulées.
+  let transactionDemarree = false;
+  try {
+    // Le rôle est vérifié avant toute autre information sur les utilisateurs.
+    const roleCode = await verifierRole(req.utilisateurId, req.params.id);
+    // Un utilisateur absent ou non-gérant ne peut pas ajouter de membre.
+    if (roleCode !== 'gerant') return res.status(403).json({ erreur: 'Seul le gérant peut ajouter un membre' });
+    // Un numéro vide ne peut pas désigner un compte à ajouter.
+    if (!telephone) return res.status(400).json({ erreur: 'Un numéro de téléphone est requis' });
+    // Une connexion dédiée permet de verrouiller la tontine pendant l'ajout.
+    connexion = await db.getConnection();
+    // La transaction empêche plusieurs ajouts simultanés de dépasser la capacité.
+    await connexion.beginTransaction();
+    transactionDemarree = true;
+    // Le verrou de ligne sérialise les contrôles de capacité pour cette tontine.
+    const [lignesTontine] = await connexion.query(
+      'SELECT id, nombre_membres FROM Tontine WHERE id = ? FOR UPDATE',
+      [req.params.id]
+    );
+    // Une tontine absente ne peut pas recevoir de membre.
+    if (lignesTontine.length === 0) {
+      await connexion.rollback();
+      transactionDemarree = false;
+      return res.status(404).json({ erreur: 'Tontine introuvable' });
+    }
+    // On compte les participations déjà enregistrées pour cette tontine.
+    const [lignesNombre] = await connexion.query(
+      'SELECT COUNT(*) AS nombre FROM Participation WHERE tontine_id = ?',
+      [req.params.id]
+    );
+    // Le quota maximal défini à la création est respecté.
+    if (Number(lignesNombre[0].nombre) >= Number(lignesTontine[0].nombre_membres)) {
+      await connexion.rollback();
+      transactionDemarree = false;
+      return res.status(400).json({ erreur: 'La tontine a déjà atteint son nombre maximal de membres' });
+    }
+    // La recherche porte uniquement sur le numéro fourni, jamais sur une liste d'utilisateurs.
+    const [utilisateurs] = await connexion.query(
+      'SELECT id FROM Utilisateur WHERE telephone = ?',
+      [telephone]
+    );
+    // Aucun compte ne correspond : l'invitation sera gérée dans une version ultérieure.
+    if (utilisateurs.length === 0) {
+      await connexion.rollback();
+      transactionDemarree = false;
+      return res.status(404).json({ erreur: 'Aucun compte ne correspond à ce numéro', invitation: true });
+    }
+    // On évite de créer une seconde participation pour le même compte.
+    const [participationsExistantes] = await connexion.query(
+      'SELECT utilisateur_id FROM Participation WHERE tontine_id = ? AND utilisateur_id = ?',
+      [req.params.id, utilisateurs[0].id]
+    );
+    // Un membre déjà inscrit reçoit un conflit au lieu d'une insertion dupliquée.
+    if (participationsExistantes.length > 0) {
+      await connexion.rollback();
+      transactionDemarree = false;
+      return res.status(409).json({ erreur: 'Cette personne est déjà membre de la tontine' });
+    }
+    // Le nouveau participant reçoit le rôle de membre dans cette tontine seulement.
+    await connexion.query(
+      "INSERT INTO Participation (utilisateur_id, tontine_id, role_code) VALUES (?, ?, 'membre')",
+      [utilisateurs[0].id, req.params.id]
+    );
+    // L'inscription devient visible seulement après validation de la transaction.
+    await connexion.commit();
+    transactionDemarree = false;
+    // Le gérant reçoit une confirmation sans données sensibles supplémentaires.
+    return res.status(201).json({ message: 'Membre ajouté avec succès' });
+  } catch (err) {
+    // Une erreur annule l'inscription incomplète si une transaction est active.
+    if (connexion && transactionDemarree) {
+      try {
+        // Le rollback garde la base cohérente après une erreur SQL.
+        await connexion.rollback();
+      } catch (erreurRollback) {
+        // L'échec éventuel du rollback est consigné sans masquer l'erreur initiale.
+        console.error('Erreur annulation ajout membre :', erreurRollback.message);
+      }
+    }
+    // L'erreur SQL détaillée reste dans les journaux du serveur.
+    console.error('Erreur ajout membre :', err.message);
+    // Le client reçoit un message JSON générique.
+    return res.status(500).json({ erreur: 'Erreur serveur lors de l’ajout du membre' });
+  } finally {
+    // La connexion est rendue au pool quel que soit le résultat.
+    if (connexion) connexion.release();
   }
 });
 

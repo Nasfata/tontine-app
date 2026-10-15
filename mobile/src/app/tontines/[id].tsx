@@ -1,161 +1,171 @@
-// React charge le détail et conserve les messages de l'écran.
+// React charge le détail et gère l'ouverture des règles.
 import { useEffect, useState } from 'react';
-// Expo Router lit le paramètre dynamique de l'URL.
-import { router, useLocalSearchParams, type Href } from 'expo-router';
-// React Native fournit l'interface utilisable sur toutes les plateformes.
-import { ActivityIndicator, Button, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-// appelerApi ajoute le jeton et lit la réponse JSON du backend.
+// React Native fournit les cartes, boutons et listes compatibles web et mobile.
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+// Expo Router lit l'identifiant et adapte le titre de la pile.
+import { router, Stack, useLocalSearchParams, type Href } from 'expo-router';
+// appelerApi ajoute le jeton et lit la réponse de l'API.
 import { appelerApi } from '../../api';
-// API_URL sert à former l'adresse absolue des photos de membres.
-import { API_URL } from '../../config';
+// Les composants partagés assurent la cohérence visuelle des sections.
+import { Avatar } from '../../components/Avatar';
+import { Badge } from '../../components/Badge';
+import { Bouton } from '../../components/Bouton';
+import { Carte } from '../../components/Carte';
+import { Chargement } from '../../components/Chargement';
+// Les libellés masquent les valeurs techniques reçues du backend.
+import { formaterMontant, libelleFrequence, libelleStatut } from '../../libelles';
+// Les couleurs et espacements viennent du thème commun.
+import { couleurs, espacements, taillesTexte } from '../../theme';
 
-// Ce type représente les informations du groupe renvoyées par l'API.
+// Ce type représente les informations de la tontine renvoyées par l'API.
 type Tontine = { id: number; nom: string; montant_cotisation: number | string; frequence: string; nombre_membres: number; regles: string | null; statut: string };
-// Ces propriétés décrivent chaque membre sans son numéro de téléphone.
+// Ces données décrivent les membres sans exposer leur numéro de téléphone.
 type Membre = { utilisateur_id: number; nom: string; photo: string | null; role_code: string };
-// Cette réponse suit le contrat de GET /api/tontines/:id.
+// Cette structure correspond au détail fourni par l'API.
 type ReponseDetail = { tontine: Tontine; role_code: string; membres: Membre[]; duree_cycle: { nombre: number; unite: string } };
-// Cette table affiche les fréquences avec leur libellé en français.
-const libellesFrequence: Record<string, string> = { quotidien: 'Quotidien', hebdomadaire: 'Hebdomadaire', mensuel: 'Mensuel' };
 
-// Cet écran charge et affiche le détail d'une tontine.
+// Cet écran présente les chiffres, les membres et les règles d'un groupe.
 export default function DetailTontine() {
-  // L'identifiant provient du segment dynamique [id].
+  // Les paramètres identifient le groupe et signalent un retour après ajout.
   const { id, rafraichir } = useLocalSearchParams<{ id: string; rafraichir?: string }>();
-  // Ces états stockent le détail et les retours de chargement.
+  // Ces états conservent la réponse et les retours visibles à l'écran.
   const [detail, setDetail] = useState<ReponseDetail | null>(null);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState('');
-  // Le détail est rechargé si l'identifiant de route change.
+  const [reglesOuvertes, setReglesOuvertes] = useState(false);
+  // Le détail est rechargé lorsque l'identifiant ou le signal de rafraîchissement change.
   useEffect(() => {
-    // Ce drapeau protège l'écran contre les réponses après démontage.
+    // Ce drapeau empêche les mises à jour après le démontage de l'écran.
     let actif = true;
-    // Cette fonction lit le détail uniquement via la route authentifiée.
+    // Cette fonction lit le détail authentifié de la tontine.
     async function chargerDetail() {
       try {
-        // L'identifiant du chemin est encodé avant de construire l'URL.
+        // L'identifiant est encodé avant l'appel API.
         const resultat = await appelerApi<ReponseDetail>(`/api/tontines/${encodeURIComponent(id)}`);
-        // La réponse est conservée si l'écran est toujours monté.
+        // La réponse est appliquée si la page est toujours active.
         if (actif) setDetail(resultat);
       } catch (cause) {
-        // Les erreurs backend sont affichées à la place du détail.
+        // Le message de l'API reste visible en cas d'échec.
         if (actif) setErreur(cause instanceof Error ? cause.message : 'Impossible de charger cette tontine.');
       } finally {
-        // L'indicateur disparaît une fois la réponse reçue.
+        // Le premier indicateur se termine après la réponse.
         if (actif) setChargement(false);
       }
     }
-    // On lance la lecture du détail pour la route active.
+    // Le titre d'en-tête suit le nom réel après son chargement.
     void chargerDetail();
-    // On évite une mise à jour React si l'utilisateur quitte l'écran.
+    // Le nettoyage protège l'état React si la route est quittée.
     return () => { actif = false; };
   }, [id, rafraichir]);
-  // La requête affiche un indicateur centré pendant son traitement.
-  if (chargement) return <View style={styles.centre}><ActivityIndicator size="large" color="#1769AA" /></View>;
-  // Une réponse absente est présentée comme une erreur lisible.
-  if (!detail) return <View style={styles.centre}><Text style={styles.erreur}>{erreur || 'Tontine introuvable.'}</Text><Button title="Retour" onPress={() => router.back()} /></View>;
-  // Le statut initial reçoit le libellé demandé dans l'interface.
-  const statutAffiche = detail.tontine.statut === 'en_preparation' ? 'En préparation' : detail.tontine.statut;
-  // Le montant est formaté en français avec la devise utilisée par le projet.
-  const montantAffiche = new Intl.NumberFormat('fr-FR').format(Number(detail.tontine.montant_cotisation));
-  // Le contenu défile pour rester lisible sur les petits écrans.
-  return <ScrollView contentContainerStyle={styles.contenu}>
-    {/* L'en-tête affiche le nom et le statut du groupe. */}
-    <View style={styles.entete}>
-      {/* Le nom est le titre principal de la page. */}
-      <Text style={styles.titre}>{detail.tontine.nom}</Text>
-      {/* Le badge reprend le statut fourni par le backend. */}
-      <Text style={styles.badge}>{statutAffiche}</Text>
-    </View>
-    {/* Les paramètres principaux sont groupés dans une carte. */}
-    <View style={styles.carte}>
-      {/* Le montant de la cotisation est affiché en FCFA. */}
-      <Text style={styles.information}>Cotisation : {montantAffiche} FCFA</Text>
-      {/* La fréquence est traduite en libellé utilisateur. */}
-      <Text style={styles.information}>Fréquence : {libellesFrequence[detail.tontine.frequence] ?? detail.tontine.frequence}</Text>
-      {/* Le statut est aussi rappelé dans les informations textuelles. */}
-      <Text style={styles.information}>Statut : {statutAffiche}</Text>
-      {/* La durée du cycle est calculée et fournie par le backend. */}
-      <Text style={styles.information}>Durée du cycle : {detail.duree_cycle.nombre} {detail.duree_cycle.unite}</Text>
-      {/* Les règles sont affichées si le gérant en a renseigné. */}
-      <Text style={styles.sousTitre}>Règles</Text>
-      <Text style={styles.texte}>{detail.tontine.regles?.trim() || 'Aucune règle renseignée.'}</Text>
-    </View>
-    {/* Cette section liste les membres connus de la tontine. */}
-    <View style={styles.section}>
-      {/* Le titre indique le nombre de membres affichés. */}
-      <Text style={styles.titreSection}>Membres ({detail.membres.length})</Text>
-      {/* Chaque ligne contient une photo ou une initiale, un nom et un rôle. */}
-      {detail.membres.map((membre) => {
-        // Le chemin photo relatif est complété avec l'adresse du backend.
-        const photoUri = membre.photo ? (membre.photo.startsWith('http') ? membre.photo : `${API_URL}${membre.photo}`) : null;
-        // Le code de rôle est transformé en libellé lisible.
-        const roleAffiche = membre.role_code.toLowerCase() === 'gerant' ? 'Gérant' : 'Membre';
-        // La ligne du membre affiche ses informations sans téléphone.
-        return <View key={membre.utilisateur_id} style={styles.ligneMembre}>
-          {/* La photo est remplacée par la première lettre du nom si elle manque. */}
-          {photoUri ? <Image source={{ uri: photoUri }} style={styles.photo} /> : <View style={styles.initiale}><Text style={styles.texteInitiale}>{membre.nom.charAt(0).toUpperCase()}</Text></View>}
+  // Une seconde tentative relance la lecture sans changer de route.
+  async function reessayer() {
+    // L'erreur est masquée pendant la nouvelle tentative.
+    setErreur('');
+    setChargement(true);
+    try {
+      // Le même endpoint fournit les dernières informations du groupe.
+      const resultat = await appelerApi<ReponseDetail>(`/api/tontines/${encodeURIComponent(id)}`);
+      // Les données remplacent la version précédente.
+      setDetail(resultat);
+    } catch (cause) {
+      // Une erreur de reprise est affichée dans son bandeau.
+      setErreur(cause instanceof Error ? cause.message : 'Impossible de charger cette tontine.');
+    } finally {
+      // L'indicateur s'arrête quelle que soit l'issue.
+      setChargement(false);
+    }
+  }
+  // Le chargement occupe l'écran pendant la première lecture.
+  if (chargement) return <Chargement texte="Chargement de la tontine…" />;
+  // Une erreur de lecture est accompagnée d'une action de nouvelle tentative.
+  if (!detail) return <View style={styles.erreurPage}><Text style={styles.texteErreur}>{erreur || 'Tontine introuvable.'}</Text><Bouton titre="Réessayer" onPress={() => void reessayer()} /></View>;
+  // Le montant de la tontine est formaté en FCFA.
+  const montant = Number(detail.tontine.montant_cotisation) || 0;
+  // La cagnotte prévue correspond au montant multiplié par le nombre de membres attendu.
+  const cagnotte = montant * detail.tontine.nombre_membres;
+  // Le compteur correspond aux membres effectivement renvoyés par la route détail.
+  const membresInscrits = detail.membres.length;
+  // L'en-tête système affiche le vrai nom et conserve le bouton retour de la pile.
+  return <>
+    {/* Le titre de la barre de navigation suit la tontine chargée. */}
+    <Stack.Screen options={{ title: detail.tontine.nom }} />
+    {/* La page entière reste défilable sur les petits écrans. */}
+    <ScrollView contentContainerStyle={styles.contenu}>
+      {/* Le statut lisible apparaît sous le titre système. */}
+      <Badge type="statut" valeur={detail.tontine.statut} />
+      {/* Les indicateurs clés sont répartis en petites cartes. */}
+      <View style={styles.grilleResume}>
+        {/* La première carte affiche le montant de cotisation. */}
+        <Carte style={styles.carteChiffre}><Text style={styles.libelleChiffre}>Cotisation</Text><Text style={styles.valeurChiffre}>{formaterMontant(montant)}</Text></Carte>
+        {/* La deuxième carte traduit la fréquence du groupe. */}
+        <Carte style={styles.carteChiffre}><Text style={styles.libelleChiffre}>Fréquence</Text><Text style={styles.valeurChiffre}>{libelleFrequence(detail.tontine.frequence)}</Text></Carte>
+        {/* La troisième carte montre la durée calculée par le serveur. */}
+        <Carte style={styles.carteChiffre}><Text style={styles.libelleChiffre}>Durée du cycle</Text><Text style={styles.valeurChiffre}>{detail.duree_cycle.nombre} {detail.duree_cycle.unite}</Text></Carte>
+        {/* La quatrième carte affiche le montant total attendu du cycle. */}
+        <Carte style={styles.carteChiffre}><Text style={styles.libelleChiffre}>Cagnotte attendue</Text><Text style={styles.valeurChiffre}>{formaterMontant(cagnotte)}</Text></Carte>
+      </View>
+      {/* La carte des membres inclut le compteur de places occupées. */}
+      <Carte style={styles.section}>
+        {/* Le titre présente le nombre de membres inscrits et la capacité. */}
+        <Text style={styles.titreSection}>Membres · {membresInscrits}/{detail.tontine.nombre_membres}</Text>
+        {/* Chaque ligne réutilise l'avatar et le badge de rôle communs. */}
+        {detail.membres.map((membre) => <View key={membre.utilisateur_id} style={styles.ligneMembre}>
+          {/* La photo est remplacée par une initiale si elle manque. */}
+          <Avatar nom={membre.nom} photo={membre.photo} taille={46} />
           {/* Le nom et le rôle sont alignés à côté de l'avatar. */}
-          <View style={styles.infosMembre}><Text style={styles.nomMembre}>{membre.nom}</Text><Text style={styles.roleMembre}>{roleAffiche}</Text></View>
-        </View>;
-      })}
-      {/* Un gérant voit l'action d'ajout prévue pour la prochaine étape. */}
-      {detail.role_code.toLowerCase() === 'gerant' && <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/tontines/ajouter-membre', params: { id: String(detail.tontine.id) } } as Href)} style={styles.boutonAjouter}><Text style={styles.texteAjouter}>Ajouter un membre</Text></Pressable>}
-      {/* Le texte explique pourquoi l'action n'ouvre pas encore de formulaire. */}
-    </View>
-    {/* Cette zone réservée permettra d'intégrer les sections de cotisations. */}
-    <View style={styles.zoneEquipe}><Text style={styles.sousTitre}>Cotisations</Text><Text style={styles.texteAide}>Section réservée à l’équipe cotisations.</Text></View>
-    {/* Cette zone réservée permettra d'intégrer les sections de tours. */}
-    <View style={styles.zoneEquipe}><Text style={styles.sousTitre}>Tours</Text><Text style={styles.texteAide}>Section réservée à l’équipe tours.</Text></View>
-  </ScrollView>;
+          <Text numberOfLines={1} style={styles.nomMembre}>{membre.nom}</Text>
+          <Badge type="role" valeur={membre.role_code} />
+        </View>)}
+        {/* Seul le rôle de gérant permet de voir l'action d'ajout. */}
+        {detail.role_code.toLowerCase() === 'gerant' && <Bouton titre="Ajouter un membre" onPress={() => router.push({ pathname: '/tontines/ajouter-membre', params: { id: String(detail.tontine.id) } } as Href)} />}
+      </Carte>
+      {/* Les règles sont repliables et cette section disparaît si elles sont absentes. */}
+      {!!detail.tontine.regles?.trim() && <Carte style={styles.section}>
+        {/* L'appui ouvre ou referme le texte des règles. */}
+        <Pressable accessibilityRole="button" accessibilityState={{ expanded: reglesOuvertes }} onPress={() => setReglesOuvertes(!reglesOuvertes)} style={styles.enteteRegles}><Text style={styles.titreSection}>Règles</Text><Text style={styles.texteAction}>{reglesOuvertes ? 'Masquer' : 'Afficher'}</Text></Pressable>
+        {/* Le texte des règles n'est monté que lorsque la section est ouverte. */}
+        {reglesOuvertes && <Text style={styles.texteRegles}>{detail.tontine.regles}</Text>}
+      </Carte>}
+      {/* Carte vide réservée à l'équipe qui ajoutera la gestion des cotisations. */}
+      <Carte style={styles.carteEquipe}><Text style={styles.titreSection}>Cotisations</Text><Text style={styles.texteSecondaire}>Les informations de cotisation apparaîtront ici.</Text></Carte>
+      {/* Carte vide réservée à l'équipe qui ajoutera la gestion des tours. */}
+      <Carte style={styles.carteEquipe}><Text style={styles.titreSection}>Tours</Text><Text style={styles.texteSecondaire}>Le calendrier des tours apparaîtra ici.</Text></Carte>
+    </ScrollView>
+  </>;
 }
 
-// Ces styles réutilisent la palette des autres écrans de l'application.
+// Ces styles utilisent le thème commun et s'adaptent à la largeur disponible.
 const styles = StyleSheet.create({
-  // L'indicateur et les erreurs sont centrés dans l'écran.
-  centre: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, gap: 12, backgroundColor: '#F4F7FB' },
-  // Le contenu principal défile avec des marges régulières.
-  contenu: { flexGrow: 1, padding: 24, gap: 16, backgroundColor: '#F4F7FB' },
-  // L'en-tête sépare le nom et le statut.
-  entete: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 },
-  // Le titre du groupe est mis en évidence.
-  titre: { flexShrink: 1, color: '#16324F', fontSize: 26, fontWeight: '700' },
-  // Le badge rend le statut facile à repérer.
-  badge: { overflow: 'hidden', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20, backgroundColor: '#EAF3FA', color: '#1769AA', fontSize: 13, fontWeight: '700' },
-  // Les détails du groupe sont regroupés dans une carte blanche.
-  carte: { padding: 20, borderRadius: 14, backgroundColor: '#FFFFFF', gap: 10 },
-  // Les lignes affichent les informations générales.
-  information: { color: '#263B50', fontSize: 15, lineHeight: 22 },
-  // Les sous-titres distinguent les sections internes.
-  sousTitre: { marginTop: 5, color: '#16324F', fontSize: 16, fontWeight: '700' },
-  // Le texte descriptif est de couleur secondaire.
-  texte: { color: '#526579', fontSize: 14, lineHeight: 21 },
-  // Les membres sont présentés dans une carte verticale.
-  section: { padding: 20, borderRadius: 14, backgroundColor: '#FFFFFF', gap: 12 },
-  // Le titre de section annonce le nombre de membres.
-  titreSection: { color: '#16324F', fontSize: 20, fontWeight: '700' },
-  // Chaque membre est présenté sur une ligne horizontale.
-  ligneMembre: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 },
-  // La photo de profil est recadrée en cercle.
-  photo: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#EAF3FA' },
-  // Le cercle de repli contient l'initiale du membre.
-  initiale: { width: 48, height: 48, justifyContent: 'center', alignItems: 'center', borderRadius: 24, backgroundColor: '#DCECF8' },
-  // L'initiale est colorée avec le bleu principal.
-  texteInitiale: { color: '#1769AA', fontSize: 20, fontWeight: '700' },
-  // Les libellés du membre sont empilés.
-  infosMembre: { flex: 1, gap: 3 },
-  // Le nom est plus marqué que le rôle.
-  nomMembre: { color: '#16324F', fontSize: 15, fontWeight: '600' },
-  // Le rôle utilise la couleur de texte secondaire.
-  roleMembre: { color: '#526579', fontSize: 13 },
-  // Le bouton d'ajout reprend les couleurs d'action de l'application.
-  boutonAjouter: { minHeight: 46, justifyContent: 'center', alignItems: 'center', marginTop: 6, borderRadius: 10, backgroundColor: '#1769AA' },
-  // Le texte du bouton reste contrasté sur son fond.
-  texteAjouter: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
-  // Le message d'aide indique que le parcours sera ajouté plus tard.
-  texteAide: { color: '#526579', fontSize: 14, lineHeight: 21 },
-  // Les futures sections ont un fond et une bordure distincts.
-  zoneEquipe: { padding: 18, borderWidth: 1, borderColor: '#D5DEE8', borderStyle: 'dashed', borderRadius: 14, backgroundColor: '#FFFFFF', gap: 5 },
-  // Les erreurs sont affichées avec une couleur rouge accessible.
-  erreur: { color: '#B42318', fontSize: 15, textAlign: 'center' },
+  // Le contenu respecte les marges et l'espacement du thème.
+  contenu: { flexGrow: 1, padding: espacements.moyen, gap: espacements.moyen, backgroundColor: couleurs.fond },
+  // Les chiffres clés se répartissent en deux colonnes.
+  grilleResume: { flexDirection: 'row', flexWrap: 'wrap', gap: espacements.petit },
+  // Chaque petite carte occupe environ la moitié de la largeur.
+  carteChiffre: { flexGrow: 1, flexBasis: '45%', minHeight: 92, justifyContent: 'space-between', gap: espacements.petit },
+  // Le nom du chiffre clé reste discret.
+  libelleChiffre: { color: couleurs.secondaire, fontSize: taillesTexte.petit },
+  // La valeur est mise en évidence avec le bleu nuit.
+  valeurChiffre: { color: couleurs.principal, fontSize: taillesTexte.corps, fontWeight: '700' },
+  // Les cartes de section utilisent des espacements constants.
+  section: { gap: espacements.moyen },
+  // Le titre sépare nettement les groupes de contenu.
+  titreSection: { color: couleurs.principal, fontSize: taillesTexte.sousTitre, fontWeight: '700' },
+  // Chaque membre apparaît sur une ligne compacte.
+  ligneMembre: { minHeight: 54, flexDirection: 'row', alignItems: 'center', gap: espacements.petit, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: couleurs.bordure },
+  // Le nom occupe l'espace laissé entre avatar et badge.
+  nomMembre: { flex: 1, color: couleurs.principal, fontSize: taillesTexte.secondaire, fontWeight: '600' },
+  // La rangée des règles aligne le titre et son action.
+  enteteRegles: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  // Le texte de l'action reprend la couleur accentuée.
+  texteAction: { color: couleurs.accent, fontSize: taillesTexte.secondaire, fontWeight: '700' },
+  // Le contenu des règles reste lisible sur plusieurs lignes.
+  texteRegles: { color: couleurs.secondaire, fontSize: taillesTexte.corps, lineHeight: 24 },
+  // Les cartes vides montrent clairement l'emplacement des futures sections.
+  carteEquipe: { minHeight: 112, justifyContent: 'center', gap: espacements.petit, borderWidth: 1, borderStyle: 'dashed', borderColor: couleurs.bordure },
+  // Le texte d'aide reste secondaire.
+  texteSecondaire: { color: couleurs.secondaire, fontSize: taillesTexte.secondaire },
+  // L'erreur de chargement occupe une zone confortable.
+  erreurPage: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: espacements.moyen, padding: espacements.grand, backgroundColor: couleurs.fond },
+  // Le message d'erreur utilise la couleur dédiée.
+  texteErreur: { color: couleurs.erreur, textAlign: 'center', fontSize: taillesTexte.corps },
 });

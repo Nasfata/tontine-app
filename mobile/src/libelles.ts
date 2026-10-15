@@ -6,10 +6,10 @@ const roles: Record<string, string> = { gerant: 'Gérant', membre: 'Membre' };
 const frequences: Record<string, string> = { quotidien: 'Quotidienne', hebdomadaire: 'Hebdomadaire', mensuel: 'Mensuelle' };
 
 // Cette fonction traduit un statut et rend lisible toute valeur inconnue.
-export function libelleStatut(valeur?: string) { return valeur ? statuts[valeur.toLowerCase()] ?? valeur.replaceAll('_', ' ') : 'Statut inconnu'; }
+export function libelleStatut(valeur?: string) { return valeur ? statuts[valeur.toLowerCase()] ?? 'Statut en cours' : 'Statut inconnu'; }
 // Cette fonction traduit un rôle sans afficher son code technique.
 export function libelleRole(valeur?: string) { return valeur ? roles[valeur.toLowerCase()] ?? 'Membre' : 'Membre'; }
 // Cette fonction traduit une fréquence avec une valeur de repli lisible.
-export function libelleFrequence(valeur?: string) { return valeur ? frequences[valeur.toLowerCase()] ?? valeur.replaceAll('_', ' ') : 'Fréquence inconnue'; }
+export function libelleFrequence(valeur?: string) { return valeur ? frequences[valeur.toLowerCase()] ?? 'Fréquence personnalisée' : 'Fréquence inconnue'; }
 // Ce formateur ajoute le séparateur de milliers français aux montants.
 export function formaterMontant(valeur: number | string) { return `${new Intl.NumberFormat('fr-FR').format(Number(valeur) || 0)} FCFA`; }

@@ -17,7 +17,7 @@ export function Bouton({ titre, chargement = false, desactive = false, erreur = 
   // Pressable utilise ses événements pour rester compatible avec Expo SDK 57.
   return <Pressable accessibilityRole="button" accessibilityState={{ disabled: estDesactive, busy: chargement }} disabled={estDesactive} onFocus={() => setEstActif(true)} onBlur={() => setEstActif(false)} onPress={onPress} style={({ pressed }) => [styles.bouton, styles[variante], erreur && styles.bordureErreur, estActif && styles.focus, pressed && !estDesactive && styles.appuye, estDesactive && styles.desactive]}>
     {/* L'indicateur remplace le texte pendant le traitement. */}
-    {chargement ? <ActivityIndicator color={variante === 'secondaire' ? couleurs.principal : couleurs.carte} /> : <Text style={[styles.texte, variante === 'secondaire' && styles.texteSecondaire]}>{titre}</Text>}
+    {chargement ? <ActivityIndicator color={couleursTexte[ variante ]} /> : <Text style={[styles.texte, variante !== 'principal' && { color: couleursTexte[variante] }]}>{titre}</Text>}
   </Pressable>;
 }
 
@@ -44,3 +44,6 @@ const styles = StyleSheet.create({
   // Le texte secondaire reprend le bleu nuit.
   texteSecondaire: { color: couleurs.principal },
 });
+
+// Cette table garde un bon contraste selon l'apparence du bouton.
+const couleursTexte = { principal: couleurs.carte, secondaire: couleurs.principal, danger: couleurs.erreur };

@@ -1,7 +1,7 @@
 // React gère le chargement du profil et les retours des formulaires.
 import { useEffect, useState } from 'react';
 // React Native fournit l'image et les conteneurs adaptés à toutes les plateformes.
-import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 // Expo ImagePicker ouvre la photothèque native ou le sélecteur du navigateur.
 import * as ImagePicker from 'expo-image-picker';
 // Le contexte fournit le profil local à actualiser après les modifications.
@@ -9,10 +9,14 @@ import { useAuth } from '../../AuthContext';
 // appelerApi gère les requêtes authentifiées et les réponses d'erreur.
 import { appelerApi } from '../../api';
 // API_URL sert à former l'adresse complète de la photo téléversée.
-import { API_URL } from '../../config';
-// Les contrôles partagés gardent le même style que les autres formulaires.
+// Les composants partagés gardent le profil dans le même système visuel.
 import { Bouton } from '../../components/Bouton';
 import { ChampTexte } from '../../components/ChampTexte';
+import { Avatar } from '../../components/Avatar';
+import { Carte } from '../../components/Carte';
+import { Chargement } from '../../components/Chargement';
+// Le thème fournit les couleurs, les espaces et la hiérarchie typographique.
+import { couleurs, espacements, taillesTexte } from '../../theme';
 
 // Ces propriétés représentent le profil public renvoyé par le backend.
 type ProfilUtilisateur = { id: number; nom: string; telephone: string; photo: string | null; date_creation?: string };
@@ -24,7 +28,7 @@ type ReponsePhoto = { message: string; photo: string };
 // Cet écran charge et permet de modifier les informations du compte.
 export default function Profil() {
   // On peut actualiser le profil local lorsque le backend confirme la modification.
-  const { utilisateur } = useAuth();
+  const { utilisateur, deconnexion } = useAuth();
   // Ces états contiennent les données, les champs et les retours d'opération.
   const [profil, setProfil] = useState<ProfilUtilisateur | null>(null);
   const [nom, setNom] = useState('');
@@ -34,6 +38,7 @@ export default function Profil() {
   const [chargementPhoto, setChargementPhoto] = useState(false);
   const [erreur, setErreur] = useState('');
   const [succes, setSucces] = useState('');
+  const [confirmerDeconnexion, setConfirmerDeconnexion] = useState(false);
   // Le profil est lu depuis le backend à l'ouverture de l'écran.
   useEffect(() => {
     // Ce drapeau évite de modifier les états après démontage.
@@ -134,54 +139,73 @@ export default function Profil() {
     }
   }
   // Le démarrage affiche un indicateur pendant la lecture du profil.
-  if (chargement) return <View style={styles.centre}><ActivityIndicator size="large" color="#1769AA" /></View>;
-  // Le chemin relatif de la photo est complété avec l'adresse du backend.
-  const uriPhoto = profil?.photo ? (profil.photo.startsWith('http') ? profil.photo : `${API_URL}${profil.photo}`) : null;
+  if (chargement) return <Chargement texte="Chargement du profil…" />;
   // L'écran garde son contenu défilable lorsque le clavier est ouvert.
   return <KeyboardAvoidingView style={styles.ecran} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
     {/* ScrollView rend le formulaire accessible sur les petits écrans. */}
     <ScrollView contentContainerStyle={styles.contenu} keyboardShouldPersistTaps="handled">
       {/* La carte regroupe photo, champs et boutons. */}
-      <View style={styles.carte}>
+      <Carte style={styles.carte}>
         {/* Le titre identifie clairement la page du compte. */}
         <Text style={styles.titre}>Mon profil</Text>
         {/* L'image du serveur est affichée, ou remplacée par l'initiale du nom. */}
-        {uriPhoto ? <Image source={{ uri: uriPhoto }} style={styles.photo} /> : <View style={styles.initiale}><Text style={styles.texteInitiale}>{(profil?.nom ?? utilisateur?.nom ?? '?').charAt(0).toUpperCase()}</Text></View>}
+        <Avatar nom={profil?.nom ?? utilisateur?.nom ?? '?'} photo={profil?.photo} taille={120} />
         {/* Ce bouton déclenche le sélecteur et son état de chargement. */}
         <Bouton titre="Changer la photo" chargement={chargementPhoto} onPress={() => void changerPhoto()} />
         {/* Les champs modifiables reflètent les valeurs du profil. */}
         <ChampTexte label="Nom" placeholder="Votre nom" value={nom} onChangeText={setNom} autoCapitalize="words" />
         <ChampTexte label="Téléphone" placeholder="Votre téléphone" value={telephone} onChangeText={setTelephone} keyboardType="phone-pad" />
         {/* Les erreurs et confirmations apparaissent après les champs. */}
-        {!!erreur && <Text style={styles.erreur} accessibilityRole="alert">{erreur}</Text>}
-        {!!succes && <Text style={styles.succes} accessibilityRole="alert">{succes}</Text>}
+        {!!erreur && <View style={styles.bandeauErreur} accessibilityRole="alert"><Text style={styles.erreur}>{erreur}</Text></View>}
+        {!!succes && <View style={styles.bandeauSucces} accessibilityRole="alert"><Text style={styles.succes}>{succes}</Text></View>}
         {/* Ce bouton enregistre les champs via PUT /api/profil. */}
         <Bouton titre="Enregistrer" chargement={enregistrement} onPress={() => void enregistrerProfil()} />
-      </View>
+        {/* La déconnexion reste distincte de l'enregistrement du profil. */}
+        <Bouton titre="Se déconnecter" variante="danger" onPress={() => setConfirmerDeconnexion(true)} />
+      </Carte>
     </ScrollView>
+    {/* La fenêtre confirme l'action avant d'effacer la session. */}
+    <Modal visible={confirmerDeconnexion} transparent animationType="fade" onRequestClose={() => setConfirmerDeconnexion(false)}>
+      {/* Le voile centre la confirmation sur les plateformes mobiles et web. */}
+      <View style={styles.voile}>
+        {/* La carte propose une annulation et une confirmation explicites. */}
+        <Carte style={styles.confirmation}>
+          {/* Le titre demande une confirmation claire. */}
+          <Text style={styles.titreConfirmation}>Se déconnecter ?</Text>
+          {/* Le détail explique l'effet de cette action. */}
+          <Text style={styles.texteConfirmation}>Tu devras te reconnecter pour retrouver ton espace.</Text>
+          {/* L'action rouge ferme la session après validation. */}
+          <Bouton titre="Oui, me déconnecter" variante="danger" onPress={() => void deconnexion()} />
+          {/* L'action secondaire ferme la fenêtre sans changer la session. */}
+          <Bouton titre="Annuler" variante="secondaire" onPress={() => setConfirmerDeconnexion(false)} />
+        </Carte>
+      </View>
+    </Modal>
   </KeyboardAvoidingView>;
 }
 
 // Les styles utilisent la palette des écrans d'authentification.
 const styles = StyleSheet.create({
   // L'écran occupe la surface disponible avec un fond doux.
-  ecran: { flex: 1, backgroundColor: '#F4F7FB' },
+  ecran: { flex: 1, backgroundColor: couleurs.fond },
   // Le contenu est centré et peut défiler avec le clavier.
-  contenu: { flexGrow: 1, justifyContent: 'center', padding: 24 },
+  contenu: { flexGrow: 1, padding: espacements.moyen, gap: espacements.moyen },
   // La carte limite la largeur du formulaire sur grand écran.
-  carte: { width: '100%', maxWidth: 480, alignSelf: 'center', padding: 24, borderRadius: 16, backgroundColor: '#FFFFFF', gap: 16 },
-  // L'indicateur de chargement est centré sur l'écran.
-  centre: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F4F7FB' },
+  carte: { width: '100%', maxWidth: 480, alignSelf: 'center', alignItems: 'stretch', gap: espacements.moyen, borderRadius: 18 },
   // Le titre reprend la couleur principale sombre.
-  titre: { color: '#16324F', fontSize: 26, fontWeight: '700', textAlign: 'center' },
-  // La photo est recadrée en cercle.
-  photo: { width: 112, height: 112, alignSelf: 'center', borderRadius: 56, backgroundColor: '#EAF3FA' },
-  // Le cercle de repli affiche l'initiale de l'utilisateur.
-  initiale: { width: 112, height: 112, alignSelf: 'center', justifyContent: 'center', alignItems: 'center', borderRadius: 56, backgroundColor: '#DCECF8' },
-  // L'initiale reste lisible dans le cercle.
-  texteInitiale: { color: '#1769AA', fontSize: 42, fontWeight: '700' },
-  // Les erreurs utilisent une couleur rouge distincte.
-  erreur: { color: '#B42318', fontSize: 14 },
-  // Les confirmations utilisent une couleur verte accessible.
-  succes: { color: '#18794E', fontSize: 14 },
+  titre: { color: couleurs.principal, fontSize: taillesTexte.titre, fontWeight: '700', textAlign: 'center' },
+  // Les erreurs disposent d'un fond distinct et d'un texte contrasté.
+  bandeauErreur: { padding: espacements.moyen, borderRadius: 12, backgroundColor: couleurs.rougeClair },
+  erreur: { color: couleurs.erreur, fontSize: taillesTexte.secondaire },
+  // Le succès est affiché dans un bandeau vert doux.
+  bandeauSucces: { padding: espacements.moyen, borderRadius: 12, backgroundColor: couleurs.vertClair },
+  succes: { color: couleurs.succes, fontSize: taillesTexte.secondaire },
+  // Le voile assombrit le profil derrière la confirmation.
+  voile: { flex: 1, justifyContent: 'center', padding: espacements.moyen, backgroundColor: 'rgba(15, 42, 67, 0.45)' },
+  // La fenêtre de confirmation garde une largeur confortable sur le web.
+  confirmation: { width: '100%', maxWidth: 420, alignSelf: 'center', gap: espacements.moyen },
+  // Le titre de confirmation utilise le bleu nuit.
+  titreConfirmation: { color: couleurs.principal, fontSize: taillesTexte.sousTitre, fontWeight: '700' },
+  // Le texte explique brièvement l'action.
+  texteConfirmation: { color: couleurs.secondaire, fontSize: taillesTexte.secondaire, lineHeight: 22 },
 });

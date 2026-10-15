@@ -4,11 +4,16 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 // Expo Router permet de créer un lien vers la connexion.
 import { Link } from 'expo-router';
+// Ionicons donne un repère de marque simple, sans image à charger.
+import { Ionicons } from '@expo/vector-icons';
 // AuthContext fournit l'action d'inscription et crée la session après succès.
 import { useAuth } from '../AuthContext';
 // Les composants communs évitent de répéter les styles des champs et du bouton.
 import { Bouton } from '../components/Bouton';
 import { ChampTexte } from '../components/ChampTexte';
+// La carte et le thème réutilisent le système visuel de l'application.
+import { Carte } from '../components/Carte';
+import { couleurs, espacements, taillesTexte } from '../theme';
 
 // Cet écran crée un compte avec un nom, un téléphone et un mot de passe.
 export default function Inscription() {
@@ -51,9 +56,9 @@ export default function Inscription() {
     {/* ScrollView garantit l'accès aux champs sur les petits écrans. */}
     <ScrollView contentContainerStyle={styles.contenu} keyboardShouldPersistTaps="handled">
       {/* La carte regroupe tous les éléments d'inscription. */}
-      <View style={styles.carte}>
-        {/* Le titre annonce la création du compte. */}
-        <Text style={styles.titre}>Créer un compte</Text>
+      <Carte style={styles.carte}>
+        {/* Le logo et le titre restent centrés au-dessus du formulaire. */}
+        <View style={styles.marque}><Ionicons name="people-circle-outline" size={48} color={couleurs.accent} /><Text style={styles.titre}>Tontine</Text><Text style={styles.sousTitre}>Créez votre espace simplement</Text></View>
         {/* Le champ nom utilise une capitalisation naturelle. */}
         <ChampTexte label="Nom" placeholder="Votre nom complet" value={nom} onChangeText={setNom} autoCapitalize="words" />
         {/* Le téléphone utilise le clavier numérique adapté. */}
@@ -61,12 +66,12 @@ export default function Inscription() {
         {/* Le mot de passe est masqué et sa longueur vérifiée à l'envoi. */}
         <ChampTexte label="Mot de passe" placeholder="6 caractères minimum" value={motDePasse} onChangeText={setMotDePasse} secureTextEntry returnKeyType="done" onSubmitEditing={() => void soumettre()} />
         {/* Les erreurs sont placées sous les champs pour rester visibles. */}
-        {!!erreur && <Text style={styles.erreur} accessibilityRole="alert">{erreur}</Text>}
+        {!!erreur && <View style={styles.bandeauErreur} accessibilityRole="alert"><Text style={styles.erreur}>{erreur}</Text></View>}
         {/* Le bouton reflète le chargement de l'inscription. */}
         <Bouton titre="S'inscrire" chargement={chargement} onPress={() => void soumettre()} />
         {/* Le lien ramène à l'écran de connexion. */}
         <Text style={styles.texteLien}>Déjà un compte ? <Link href="/connexion" style={styles.lien}>Se connecter</Link></Text>
-      </View>
+      </Carte>
     </ScrollView>
   </KeyboardAvoidingView>;
 }
@@ -74,17 +79,23 @@ export default function Inscription() {
 // Les styles reprennent les mêmes couleurs et proportions que la connexion.
 const styles = StyleSheet.create({
   // L'écran occupe toute la surface disponible.
-  ecran: { flex: 1, backgroundColor: '#F4F7FB' },
+  ecran: { flex: 1, backgroundColor: couleurs.fond },
   // Le contenu reste centré et défilable selon la hauteur disponible.
-  contenu: { flexGrow: 1, justifyContent: 'center', padding: 24 },
+  contenu: { flexGrow: 1, justifyContent: 'center', padding: espacements.moyen },
   // La carte blanche porte le formulaire.
-  carte: { width: '100%', maxWidth: 440, alignSelf: 'center', padding: 24, borderRadius: 16, backgroundColor: '#FFFFFF', gap: 16 },
+  carte: { width: '100%', maxWidth: 440, alignSelf: 'center', gap: espacements.moyen, borderRadius: 18 },
   // Le titre utilise la couleur principale de l'application.
-  titre: { color: '#16324F', fontSize: 28, fontWeight: '700', marginBottom: 4 },
-  // L'erreur est affichée avec une couleur accessible et distincte.
-  erreur: { color: '#B42318', fontSize: 14 },
+  titre: { color: couleurs.principal, fontSize: taillesTexte.grandTitre, fontWeight: '700' },
+  // Le logo et la promesse sont centrés dans la carte.
+  marque: { alignItems: 'center', gap: espacements.petit, paddingBottom: espacements.petit },
+  // Le sous-titre reste gris et secondaire.
+  sousTitre: { color: couleurs.secondaire, fontSize: taillesTexte.secondaire },
+  // Le message d'erreur dispose d'un fond rouge doux.
+  bandeauErreur: { padding: espacements.moyen, borderRadius: 12, backgroundColor: couleurs.rougeClair },
+  // Le texte d'erreur reste accessible et contrasté.
+  erreur: { color: couleurs.erreur, fontSize: taillesTexte.secondaire },
   // Le texte du lien est centré sous le bouton.
-  texteLien: { color: '#526579', textAlign: 'center', fontSize: 14 },
+  texteLien: { color: couleurs.secondaire, textAlign: 'center', fontSize: taillesTexte.secondaire },
   // Le lien reprend la couleur principale des actions.
-  lien: { color: '#1769AA', fontWeight: '700' },
+  lien: { color: couleurs.principal, fontWeight: '700' },
 });

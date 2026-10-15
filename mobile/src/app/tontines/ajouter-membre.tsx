@@ -1,7 +1,7 @@
 // React gère la saisie, les suggestions et les états des demandes.
 import { useState } from 'react';
 // React Native fournit les composants multiplateformes du formulaire.
-import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 // expo-contacts lit les numéros du téléphone uniquement sur les plateformes natives.
 import * as Contacts from 'expo-contacts';
 // expo-crypto calcule les empreintes SHA-256 sans envoyer les numéros en clair.
@@ -10,10 +10,13 @@ import * as Crypto from 'expo-crypto';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 // appelerApi envoie les empreintes ou l'ajout avec le jeton de session.
 import { appelerApi, ErreurApi } from '../../api';
-// Bouton réutilisable affiche un indicateur pendant une action.
+// Ces composants réutilisables harmonisent les champs, cartes, avatars et boutons.
 import { Bouton } from '../../components/Bouton';
-// API_URL complète les chemins des photos utilisateur.
-import { API_URL } from '../../config';
+import { Avatar } from '../../components/Avatar';
+import { Carte } from '../../components/Carte';
+import { ChampTexte } from '../../components/ChampTexte';
+// Le thème définit les messages et les espacements de cette page.
+import { couleurs, espacements, taillesTexte } from '../../theme';
 
 // Cette structure contient uniquement les données de suggestion autorisées par l'API.
 type Suggestion = { id: number; nom: string; photo: string | null };
@@ -168,44 +171,38 @@ export default function AjouterMembre() {
     {/* Le défilement garde la saisie manuelle accessible avec le clavier ouvert. */}
     <ScrollView contentContainerStyle={styles.contenu} keyboardShouldPersistTaps="handled">
       {/* La carte contient l'action contacts et le formulaire manuel. */}
-      <View style={styles.carte}>
+      <Carte style={styles.carte}>
         {/* Le titre annonce l'action de l'écran. */}
         <Text style={styles.titre}>Ajouter un membre</Text>
         {/* Le texte explique les deux méthodes disponibles. */}
         <Text style={styles.texte}>Choisis un contact ou saisis son numéro de téléphone.</Text>
         {/* Le bouton contacts est réservé aux plateformes natives. */}
-        {Platform.OS !== 'web' && <Bouton titre="Choisir dans mes contacts" chargement={chargementContacts} onPress={() => void choisirDansMesContacts()} />}
+        {Platform.OS !== 'web' && <Bouton titre="Choisir dans mes contacts" variante="secondaire" chargement={chargementContacts} onPress={() => void choisirDansMesContacts()} />}
         {/* Le navigateur utilise seulement le parcours de saisie manuelle. */}
         {Platform.OS === 'web' && <Text style={styles.infoWeb}>Les contacts ne sont pas accessibles sur le Web. Tu peux saisir un numéro ci-dessous.</Text>}
         {/* Le champ manuel reste disponible sur toutes les plateformes. */}
-        <Text style={styles.libelle}>Téléphone</Text>
-        <TextInput style={styles.champ} value={telephone} onChangeText={setTelephone} placeholder="Ex. +221 77 123 45 67" keyboardType="phone-pad" autoComplete="tel" returnKeyType="done" onSubmitEditing={() => void ajouterParTelephone()} />
+        <ChampTexte label="Téléphone" value={telephone} onChangeText={setTelephone} placeholder="Ex. +221 77 123 45 67" keyboardType="phone-pad" autoComplete="tel" returnKeyType="done" onSubmitEditing={() => void ajouterParTelephone()} />
         {/* Le bouton manuel appelle l'endpoint d'ajout par numéro. */}
         <Bouton titre="Ajouter" chargement={chargementAjout} onPress={() => void ajouterParTelephone()} />
         {/* Les refus de permission et erreurs sont expliqués sous le formulaire. */}
-        {!!erreur && <Text style={[styles.erreur, invitation && styles.messageInvitation]} accessibilityRole="alert">{erreur}</Text>}
+        {!!erreur && <View style={[styles.bandeau, invitation ? styles.bandeauInvitation : styles.bandeauErreur]} accessibilityRole="alert"><Text style={invitation ? styles.texteInvitation : styles.texteErreur}>{erreur}</Text></View>}
         {/* Les confirmations et résultats sans correspondance sont affichés ici. */}
-        {!!succes && <Text style={styles.succes} accessibilityRole="alert">{succes}</Text>}
-      </View>
+        {!!succes && <View style={styles.bandeauSucces} accessibilityRole="alert"><Text style={styles.texteSucces}>{succes}</Text></View>}
+      </Carte>
       {/* Les correspondances sont présentées en liste et restent sélectionnables. */}
-      {suggestions.length > 0 && <View style={styles.carte}>
+      {suggestions.length > 0 && <Carte style={styles.carte}>
         {/* Le titre indique le but de la liste renvoyée par l'API. */}
         <Text style={styles.titreSection}>Suggestions de tes contacts</Text>
         {/* Chaque suggestion expose une action qui ajoute son identifiant. */}
-        {suggestions.map((suggestion) => {
-          // Le chemin relatif de la photo est complété avec l'adresse API.
-          const photo = suggestion.photo ? (suggestion.photo.startsWith('http') ? suggestion.photo : `${API_URL}${suggestion.photo}`) : null;
-          // La ligne est désactivée pendant l'ajout de cette suggestion.
-          return <Pressable key={suggestion.id} accessibilityRole="button" disabled={identifiantEnCours !== null} onPress={() => void ajouterSuggestion(suggestion)} style={styles.ligneSuggestion}>
-            {/* La photo est remplacée par une initiale si le compte n'en a pas. */}
-            {photo ? <Image source={{ uri: photo }} style={styles.photo} /> : <View style={styles.initiale}><Text style={styles.texteInitiale}>{suggestion.nom.charAt(0).toUpperCase()}</Text></View>}
-            {/* Le nom est la seule donnée d'identité affichée dans la suggestion. */}
-            <Text style={styles.nomSuggestion}>{suggestion.nom}</Text>
-            {/* Le compte sélectionné montre un indicateur de traitement. */}
-            {identifiantEnCours === suggestion.id && <ActivityIndicator color="#1769AA" />}
-          </Pressable>;
-        })}
-      </View>}
+        {suggestions.map((suggestion) => <View key={suggestion.id} style={styles.ligneSuggestion}>
+          {/* L'avatar réutilisable affiche la photo ou une initiale. */}
+          <Avatar nom={suggestion.nom} photo={suggestion.photo} taille={44} />
+          {/* Le nom est la seule donnée d'identité exposée dans la suggestion. */}
+          <Text style={styles.nomSuggestion}>{suggestion.nom}</Text>
+          {/* Le bouton est désactivé et animé pendant l'ajout de cette personne. */}
+          <Bouton titre="Ajouter" chargement={identifiantEnCours === suggestion.id} desactive={identifiantEnCours !== null && identifiantEnCours !== suggestion.id} onPress={() => void ajouterSuggestion(suggestion)} />
+        </View>)}
+      </Carte>}
     </ScrollView>
   </KeyboardAvoidingView>;
 }
@@ -213,37 +210,37 @@ export default function AjouterMembre() {
 // Ces styles reprennent la palette déjà utilisée dans les écrans d'authentification.
 const styles = StyleSheet.create({
   // Le fond clair est commun aux plateformes.
-  ecran: { flex: 1, backgroundColor: '#F4F7FB' },
+  ecran: { flex: 1, backgroundColor: couleurs.fond },
   // Le contenu est centré et défile avec le clavier.
-  contenu: { flexGrow: 1, justifyContent: 'center', padding: 24, gap: 16 },
+  contenu: { flexGrow: 1, padding: espacements.moyen, gap: espacements.moyen },
   // Les cartes regroupent formulaire et suggestions.
-  carte: { width: '100%', maxWidth: 520, alignSelf: 'center', padding: 22, borderRadius: 16, backgroundColor: '#FFFFFF', gap: 14 },
+  carte: { width: '100%', maxWidth: 480, alignSelf: 'center', gap: espacements.moyen, borderRadius: 18 },
   // Le titre reprend la couleur sombre de la palette.
-  titre: { color: '#16324F', fontSize: 25, fontWeight: '700' },
+  titre: { color: couleurs.principal, fontSize: taillesTexte.titre, fontWeight: '700' },
   // Le texte explicatif utilise la couleur secondaire.
-  texte: { color: '#526579', fontSize: 14, lineHeight: 21 },
+  texte: { color: couleurs.secondaire, fontSize: taillesTexte.secondaire, lineHeight: 22 },
   // Le navigateur affiche une note neutre au lieu d'une erreur.
-  infoWeb: { padding: 12, borderRadius: 9, backgroundColor: '#EAF3FA', color: '#263B50', fontSize: 14, lineHeight: 21 },
+  infoWeb: { padding: espacements.moyen, borderRadius: 12, backgroundColor: couleurs.bleuClair, color: couleurs.principal, fontSize: taillesTexte.secondaire, lineHeight: 22 },
   // Le libellé décrit le champ manuel.
-  libelle: { color: '#263B50', fontSize: 14, fontWeight: '600' },
-  // Le champ conserve une taille confortable sur téléphone.
-  champ: { minHeight: 50, paddingHorizontal: 14, borderWidth: 1, borderColor: '#D5DEE8', borderRadius: 10, backgroundColor: '#FFFFFF', color: '#16324F', fontSize: 16 },
-  // Les erreurs s'affichent en rouge sous le champ.
-  erreur: { color: '#B42318', fontSize: 14, lineHeight: 21 },
-  // Le refus contacts reçoit un fond doux et un texte brun lisible.
-  messageInvitation: { padding: 12, borderRadius: 8, backgroundColor: '#FFF4E5', color: '#7A4B00' },
-  // Les messages positifs utilisent une couleur verte accessible.
-  succes: { color: '#18794E', fontSize: 14, fontWeight: '600' },
+  libelle: { color: couleurs.principal, fontSize: taillesTexte.secondaire, fontWeight: '600' },
+  // Le bandeau commun donne un fond distinct aux messages d'action.
+  bandeau: { padding: espacements.moyen, borderRadius: 12 },
+  // Le bandeau d'erreur utilise le rouge du thème.
+  bandeauErreur: { backgroundColor: couleurs.rougeClair },
+  // Le texte d'erreur reprend le rouge accessible.
+  texteErreur: { color: couleurs.erreur, fontSize: taillesTexte.secondaire, lineHeight: 21 },
+  // L'invitation à venir reçoit un ton doré doux.
+  bandeauInvitation: { backgroundColor: couleurs.ambreClair },
+  // Le texte d'invitation reste contrasté sur fond clair.
+  texteInvitation: { color: couleurs.principal, fontSize: taillesTexte.secondaire, lineHeight: 21 },
+  // Le succès utilise un fond vert atténué.
+  bandeauSucces: { padding: espacements.moyen, borderRadius: 12, backgroundColor: couleurs.vertClair },
+  // Le texte positif reprend le vert du thème.
+  texteSucces: { color: couleurs.succes, fontSize: taillesTexte.secondaire, fontWeight: '600' },
   // Le titre de liste distingue les suggestions du formulaire.
-  titreSection: { color: '#16324F', fontSize: 19, fontWeight: '700' },
+  titreSection: { color: couleurs.principal, fontSize: taillesTexte.sousTitre, fontWeight: '700' },
   // Chaque suggestion aligne l'avatar, le nom et le chargement.
-  ligneSuggestion: { minHeight: 60, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: 1, borderBottomColor: '#EDF1F5' },
-  // Les photos apparaissent en petits cercles.
-  photo: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#EAF3FA' },
-  // Le cercle de repli contient l'initiale du compte.
-  initiale: { width: 42, height: 42, justifyContent: 'center', alignItems: 'center', borderRadius: 21, backgroundColor: '#DCECF8' },
-  // L'initiale reprend le bleu principal.
-  texteInitiale: { color: '#1769AA', fontSize: 18, fontWeight: '700' },
+  ligneSuggestion: { minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: espacements.petit, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: couleurs.bordure },
   // Le nom prend l'espace disponible dans la ligne.
-  nomSuggestion: { flex: 1, color: '#263B50', fontSize: 15, fontWeight: '600' },
+  nomSuggestion: { flex: 1, color: couleurs.principal, fontSize: taillesTexte.secondaire, fontWeight: '600' },
 });

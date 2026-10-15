@@ -29,7 +29,7 @@ function NavigationAuthentifiee() {
   // Le démarrage attend la lecture du stockage local.
   if (chargement) return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><ActivityIndicator size="large" /></View>;
   // Les routes sont déclarées explicitement dans le navigateur Expo Router.
-  return <Stack screenOptions={{ headerShown: false }}><Stack.Screen name="index" /><Stack.Screen name="connexion" /><Stack.Screen name="inscription" /><Stack.Screen name="accueil" /></Stack>;
+  return <Stack screenOptions={{ headerShown: false }}><Stack.Screen name="index" /><Stack.Screen name="connexion" /><Stack.Screen name="inscription" /><Stack.Screen name="accueil" /><Stack.Screen name="profil" /></Stack>;
 }
 
 // Le fournisseur enveloppe toute l'application avant le navigateur.

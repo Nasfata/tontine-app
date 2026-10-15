@@ -13,19 +13,23 @@ function NavigationAuthentifiee() {
   const { utilisateur, chargement } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  // On redirige vers la partie adaptée dès que le stockage a été lu.
+  // On identifie la route courante à partir des segments Expo Router.
+  const pageActuelle = segments[0];
+  // La connexion et l'inscription sont accessibles sans session.
+  const pagePublique = pageActuelle === 'connexion' || pageActuelle === 'inscription';
+  // On redirige seulement après la lecture du stockage local.
   useEffect(() => {
-    // Aucune redirection n'est faite avant de connaître l'état de session.
+    // Aucun changement de route n'est fait pendant le chargement initial.
     if (chargement) return;
-    // Les utilisateurs connectés sont dirigés vers l'accueil authentifié.
-    if (utilisateur && segments[0] !== 'accueil') router.replace('/accueil');
-    // Les visiteurs sont dirigés vers l'écran de connexion.
-    if (!utilisateur && segments[0] !== 'connexion') router.replace('/connexion');
-  }, [chargement, utilisateur, segments, router]);
+    // Un utilisateur connecté ne doit pas rester sur une page publique.
+    if (utilisateur && pagePublique) router.replace('/accueil');
+    // Un visiteur conserve l'accès aux pages publiques.
+    if (!utilisateur && !pagePublique) router.replace('/connexion');
+  }, [chargement, utilisateur, pagePublique, segments, router]);
   // Le démarrage attend la lecture du stockage local.
   if (chargement) return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><ActivityIndicator size="large" /></View>;
   // Les routes sont déclarées explicitement dans le navigateur Expo Router.
-  return <Stack screenOptions={{ headerShown: false }}><Stack.Screen name="index" /><Stack.Screen name="connexion" /><Stack.Screen name="accueil" /></Stack>;
+  return <Stack screenOptions={{ headerShown: false }}><Stack.Screen name="index" /><Stack.Screen name="connexion" /><Stack.Screen name="inscription" /><Stack.Screen name="accueil" /></Stack>;
 }
 
 // Le fournisseur enveloppe toute l'application avant le navigateur.

@@ -1,48 +1,82 @@
-// React gère les champs du formulaire et le mode inscription.
+// React gère les valeurs du formulaire et ses états d'envoi.
 import { useState } from 'react';
-// Ces composants natifs fonctionnent sur mobile et sur le web.
-import { ActivityIndicator, Button, Text, TextInput, View } from 'react-native';
-// Le contexte déclenche les appels d'inscription et de connexion.
+// React Native fournit les conteneurs adaptés au clavier mobile.
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+// Expo Router permet de créer un lien vers l'inscription.
+import { Link } from 'expo-router';
+// AuthContext fournit l'action de connexion.
 import { useAuth } from '../AuthContext';
+// ChampTexte et Bouton appliquent les styles partagés des formulaires.
+import { Bouton } from '../components/Bouton';
+import { ChampTexte } from '../components/ChampTexte';
 
-// Cet écran propose un formulaire de connexion et d'inscription.
+// Cet écran ouvre une session avec un téléphone et un mot de passe.
 export default function Connexion() {
-  // Les valeurs du formulaire restent dans l'état local de l'écran.
-  const [nom, setNom] = useState('');
+  // Ces états stockent les valeurs saisies et l'état de traitement.
   const [telephone, setTelephone] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
-  // Le mode inscription ajoute le champ du nom au formulaire.
-  const [modeInscription, setModeInscription] = useState(false);
-  // Ces états affichent l'erreur backend et désactivent le formulaire pendant l'envoi.
   const [erreur, setErreur] = useState('');
-  const [envoi, setEnvoi] = useState(false);
-  // Les actions de session sont fournies par le contexte global.
-  const { inscription, connexion } = useAuth();
-  // Cette fonction envoie le formulaire au point d'API correspondant au mode choisi.
+  const [chargement, setChargement] = useState(false);
+  // On récupère l'action de connexion auprès du fournisseur global.
+  const { connexion } = useAuth();
+  // Cette fonction valide les champs puis appelle le backend.
   async function soumettre() {
-    // On efface l'ancienne erreur avant de tenter la requête.
+    // Les champs vides sont signalés avant tout appel réseau.
+    if (!telephone.trim() || !motDePasse) {
+      setErreur('Veuillez remplir tous les champs.');
+      return;
+    }
+    // On efface l'erreur précédente et active l'indicateur du bouton.
     setErreur('');
-    setEnvoi(true);
+    setChargement(true);
     try {
-      // On crée un compte ou on ouvre une session avec les champs fournis.
-      if (modeInscription) await inscription(nom, telephone, motDePasse);
-      else await connexion(telephone, motDePasse);
+      // AuthContext sauvegarde le jeton et le profil après une réponse valide.
+      await connexion(telephone.trim(), motDePasse);
     } catch (cause) {
-      // Le message renvoyé par l'API est présenté directement à l'utilisateur.
+      // Le message d'erreur renvoyé par le backend est affiché sous le formulaire.
       setErreur(cause instanceof Error ? cause.message : 'Une erreur est survenue.');
     } finally {
-      // Le formulaire redevient actif lorsque la requête est terminée.
-      setEnvoi(false);
+      // Le bouton retrouve son état normal lorsque la requête se termine.
+      setChargement(false);
     }
   }
-  // Le formulaire garde volontairement une présentation minimale.
-  return <View style={{ flex: 1, justifyContent: 'center', padding: 24, gap: 12 }}>
-    <Text style={{ fontSize: 24, fontWeight: 'bold' }}>{modeInscription ? 'Créer un compte' : 'Connexion'}</Text>
-    {modeInscription && <TextInput placeholder="Nom" value={nom} onChangeText={setNom} autoCapitalize="words" />}
-    <TextInput placeholder="Téléphone" value={telephone} onChangeText={setTelephone} keyboardType="phone-pad" />
-    <TextInput placeholder="Mot de passe" value={motDePasse} onChangeText={setMotDePasse} secureTextEntry />
-    {!!erreur && <Text accessibilityRole="alert">{erreur}</Text>}
-    {envoi ? <ActivityIndicator /> : <Button title={modeInscription ? 'Créer le compte' : 'Se connecter'} onPress={() => void soumettre()} />}
-    <Button title={modeInscription ? 'Déjà un compte ? Se connecter' : 'Créer un compte'} onPress={() => setModeInscription(!modeInscription)} />
-  </View>;
+  // Le conteneur évite le clavier et rend le formulaire défilable sur petit écran.
+  return <KeyboardAvoidingView style={styles.ecran} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    {/* Le défilement garde les champs accessibles lorsque le clavier est ouvert. */}
+    <ScrollView contentContainerStyle={styles.contenu} keyboardShouldPersistTaps="handled">
+      {/* Le formulaire est centré dans un panneau simple et lisible. */}
+      <View style={styles.carte}>
+        {/* Le titre décrit l'action de l'écran. */}
+        <Text style={styles.titre}>Connexion</Text>
+        {/* Le champ téléphone utilise le clavier numérique adapté. */}
+        <ChampTexte label="Téléphone" placeholder="Votre numéro de téléphone" value={telephone} onChangeText={setTelephone} keyboardType="phone-pad" />
+        {/* Le mot de passe est masqué pendant la saisie. */}
+        <ChampTexte label="Mot de passe" placeholder="Votre mot de passe" value={motDePasse} onChangeText={setMotDePasse} secureTextEntry returnKeyType="done" onSubmitEditing={() => void soumettre()} />
+        {/* Les erreurs de validation ou du backend apparaissent sous les champs. */}
+        {!!erreur && <Text style={styles.erreur} accessibilityRole="alert">{erreur}</Text>}
+        {/* Le bouton montre un indicateur et se désactive pendant l'appel. */}
+        <Bouton titre="Se connecter" chargement={chargement} onPress={() => void soumettre()} />
+        {/* Le lien ouvre l'écran d'inscription. */}
+        <Text style={styles.texteLien}>Pas encore de compte ? <Link href="/inscription" style={styles.lien}>S'inscrire</Link></Text>
+      </View>
+    </ScrollView>
+  </KeyboardAvoidingView>;
 }
+
+// Ces styles définissent le fond, les espacements et les couleurs communes.
+const styles = StyleSheet.create({
+  // L'écran occupe toute la surface disponible.
+  ecran: { flex: 1, backgroundColor: '#F4F7FB' },
+  // Le contenu reste centré et peut grandir sur un petit écran.
+  contenu: { flexGrow: 1, justifyContent: 'center', padding: 24 },
+  // La carte blanche porte le formulaire.
+  carte: { width: '100%', maxWidth: 440, alignSelf: 'center', padding: 24, borderRadius: 16, backgroundColor: '#FFFFFF', gap: 16 },
+  // Le titre utilise la couleur principale de l'application.
+  titre: { color: '#16324F', fontSize: 28, fontWeight: '700', marginBottom: 4 },
+  // L'erreur est visible sans prendre la couleur principale.
+  erreur: { color: '#B42318', fontSize: 14 },
+  // Le texte et le lien sont centrés sous le bouton.
+  texteLien: { color: '#526579', textAlign: 'center', fontSize: 14 },
+  // Le lien reprend la couleur du bouton.
+  lien: { color: '#1769AA', fontWeight: '700' },
+});

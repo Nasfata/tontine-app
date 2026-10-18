@@ -1,7 +1,7 @@
 // React charge les tontines, gère le rafraîchissement et l'aide de première visite.
 import { useCallback, useEffect, useState } from 'react';
 // React Native fournit la liste défilante, le rafraîchissement et les zones tactiles.
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 // Expo Router ouvre le détail et les destinations des actions.
 import { Link, router, type Href } from 'expo-router';
 // Le contexte donne le nom de la personne connectée.
@@ -44,8 +44,6 @@ export default function Accueil() {
     try {
       // La liste est demandée au backend avec le jeton courant.
       const resultat = await appelerApi<ReponseTontines>('/api/tontines');
-      // Ce journal temporaire permet de vérifier la réponse dans la console Expo ou navigateur.
-      console.log('Réponse GET /api/tontines :', resultat);
       // Les deux formats de réponse sont convertis en liste.
       const liste = Array.isArray(resultat) ? resultat : resultat.tontines ?? [];
       // La liste est mise à jour après une réponse correcte.
@@ -68,7 +66,7 @@ export default function Accueil() {
   // L'indicateur remplace la liste seulement pendant sa première lecture.
   if (chargement) return <Chargement texte="Chargement de vos tontines…" />;
   // L'accueil conserve le défilement et prend en charge le geste de rafraîchissement.
-  return <ScrollView contentContainerStyle={styles.contenu} refreshControl={<RefreshControl refreshing={actualisation} onRefresh={() => void chargerTontines(true)} tintColor={couleurs.accent} colors={[couleurs.accent]} />}>
+  return <ScrollView style={styles.ecran} contentContainerStyle={styles.contenu} refreshControl={<RefreshControl refreshing={actualisation} onRefresh={() => void chargerTontines(true)} tintColor={couleurs.accent} colors={[couleurs.accent]} />}>
     {/* La salutation et l'accès au profil composent l'en-tête principal. */}
     <View style={styles.entete}>
       {/* Le prénom est mis en évidence sans afficher le nom complet. */}
@@ -93,7 +91,7 @@ export default function Accueil() {
         // Le lien garde la carte entière accessible au doigt et au clavier.
         return <Link key={tontine.id} href={{ pathname: '/tontines/[id]', params: { id: String(tontine.id) } } as Href} asChild><Pressable accessibilityRole="button" style={({ pressed }) => [styles.carteTappable, pressed && styles.appuye]}><Carte style={styles.carteTontine}>
           {/* Le nom et les badges forment la ligne de titre de la carte. */}
-          <View style={styles.ligneTitre}><Text style={styles.nomTontine}>{tontine.nom}</Text><Badge type="role" valeur={tontine.role_code ?? 'membre'} /></View>
+          <View style={styles.ligneTitre}><Text style={styles.nomTontine}>{tontine.nom}</Text><Badge type="role" valeur={tontine.role_code ?? ''} /></View>
           {/* Le statut est traduit avant d'être affiché. */}
           <Badge type="statut" valeur={tontine.statut ?? ''} />
           {/* Le montant et la fréquence résument les contributions prévues. */}
@@ -109,6 +107,8 @@ export default function Accueil() {
 
 // Ces styles s'appuient exclusivement sur le thème partagé.
 const styles = StyleSheet.create({
+  // La liste remplit la scène et la hauteur web héritée du navigateur d'onglets.
+  ecran: { flex: 1, height: Platform.OS === 'web' ? '100%' : undefined },
   // Le contenu défile avec une marge confortable autour des cartes.
   contenu: { flexGrow: 1, padding: espacements.moyen, gap: espacements.moyen, backgroundColor: couleurs.fond },
   // L'en-tête laisse le prénom et l'avatar respirer.

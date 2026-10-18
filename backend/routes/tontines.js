@@ -84,12 +84,11 @@ router.get('/', async (req, res) => {
     // La jointure récupère le rôle par tontine et son libellé.
     const [tontines] = await db.query(
       `SELECT t.id, t.nom, t.montant_cotisation, t.frequence, t.nombre_membres, t.regles, t.statut,
-              p.role_code, r.libelle AS libelle_role,
+              p.role_code AS role_code, r.libelle AS libelle_role,
               (SELECT COUNT(*) FROM Participation AS p2 WHERE p2.tontine_id = t.id) AS nombre_membres_inscrits
        FROM Tontine AS t
-       INNER JOIN Participation AS p ON p.tontine_id = t.id
+       INNER JOIN Participation AS p ON p.tontine_id = t.id AND p.utilisateur_id = ?
        LEFT JOIN Role AS r ON r.code = p.role_code
-       WHERE p.utilisateur_id = ?
        ORDER BY t.id DESC`,
       [req.utilisateurId]
     );

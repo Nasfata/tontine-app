@@ -36,6 +36,10 @@ déclarer, prouver (photo) et valider des paiements faits en dehors (mobile mone
 - Ne jamais committer .env, node_modules ni uploads.
 - Petits changements : ne modifie que les fichiers nécessaires à la tâche.
 
+## Design
+- Le design de l'app suit DESIGN.md (mobile/DESIGN.md), issu de l'app InvoiceEase.
+  Ne pas inventer d'autres couleurs ni composants : réutiliser ceux du guide.
+
 ## Fin de chaque tâche
 Indique-moi : 1) les fichiers créés/modifiés, 2) les commandes à lancer (npm install...),
 3) comment tester pas à pas, 4) les erreurs probables.

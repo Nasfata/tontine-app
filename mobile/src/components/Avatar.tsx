@@ -23,5 +23,5 @@ const styles = StyleSheet.create({
   // La photo reste cadrée sans déformation.
   photo: { backgroundColor: couleurs.bleuClair },
   // Le cercle de secours centre l'initiale.
-  initiale: { alignItems: 'center', justifyContent: 'center', backgroundColor: couleurs.ambreClair, borderRadius: rayons.pilule },
+  initiale: { alignItems: 'center', justifyContent: 'center', backgroundColor: couleurs.fondChamp, borderRadius: rayons.pilule },
 });

@@ -17,7 +17,7 @@ export function ChampTexte({ label, erreur, style, editable = true, onFocus, onB
     {/* Le label aide à identifier le champ même après saisie. */}
     <Text style={styles.label}>{label}</Text>
     {/* Les propriétés natives restent personnalisables par chaque écran. */}
-    <TextInput {...proprietes} editable={editable} onFocus={(evenement) => { setEstActif(true); onFocus?.(evenement); }} onBlur={(evenement) => { setEstActif(false); onBlur?.(evenement); }} accessibilityState={{ disabled: !editable }} style={[styles.champ, estActif && styles.focus, !!erreur && styles.champErreur, !editable && styles.desactive, style]} placeholderTextColor={couleurs.secondaire} />
+    <TextInput {...proprietes} editable={editable} onFocus={(evenement) => { setEstActif(true); onFocus?.(evenement); }} onBlur={(evenement) => { setEstActif(false); onBlur?.(evenement); }} accessibilityState={{ disabled: !editable }} style={[styles.champ, estActif && styles.focus, !!erreur && styles.champErreur, !editable && styles.desactive, style]} placeholderTextColor={couleurs.texteAttenue} />
     {/* Le message apparaît sous le champ quand une erreur est fournie. */}
     {!!erreur && <Text accessibilityRole="alert" style={styles.erreur}>{erreur}</Text>}
   </View>;
@@ -28,15 +28,15 @@ const styles = StyleSheet.create({
   // Les champs sont séparés verticalement dans le formulaire.
   conteneur: { gap: espacements.petit },
   // Le label est lisible sur le fond blanc de la carte.
-  label: { color: couleurs.principal, fontSize: taillesTexte.secondaire, fontWeight: '600' },
+  label: { color: couleurs.texteSecondaire, fontSize: taillesTexte.secondaire, fontWeight: '600' },
   // Le champ offre une zone de saisie confortable sur toutes les plateformes.
-  champ: { minHeight: 52, paddingHorizontal: espacements.moyen, borderWidth: 1, borderColor: couleurs.bordure, borderRadius: rayons.petit, backgroundColor: couleurs.carte, color: couleurs.principal, fontSize: taillesTexte.corps },
+  champ: { minHeight: 48, paddingHorizontal: espacements.moyen, borderWidth: 1, borderColor: couleurs.bordure, borderRadius: rayons.moyen, backgroundColor: couleurs.fondChamp, color: couleurs.texte, fontSize: taillesTexte.corps },
   // Le focus clavier ou tactile devient visible avec l'accent doré.
-  focus: { borderColor: couleurs.accent, borderWidth: 2 },
+  focus: { borderColor: couleurs.bordure },
   // Une erreur rend le contour rouge sans masquer le contenu saisi.
-  champErreur: { borderColor: couleurs.erreur },
+  champErreur: { borderColor: couleurs.erreurFormulaire, backgroundColor: couleurs.rougeClair },
   // Un champ non modifiable est légèrement atténué.
   desactive: { backgroundColor: couleurs.fond, opacity: 0.7 },
   // Le message d'erreur est placé directement sous sa saisie.
-  erreur: { color: couleurs.erreur, fontSize: taillesTexte.petit },
+  erreur: { color: couleurs.erreurFormulaire, fontSize: taillesTexte.petit },
 });

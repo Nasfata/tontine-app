@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
   // Le contenu est centré dans la carte d'état vide.
   contenu: { alignItems: 'center', gap: espacements.moyen, paddingVertical: espacements.grand },
   // Le titre reprend la hiérarchie générale.
-  titre: { color: couleurs.principal, fontSize: taillesTexte.sousTitre, fontWeight: '700', textAlign: 'center' },
+  titre: { color: couleurs.texte, fontSize: taillesTexte.sousTitre, fontWeight: '700', textAlign: 'center' },
   // Le détail secondaire reste discret et centré.
-  texte: { color: couleurs.secondaire, fontSize: taillesTexte.corps, lineHeight: 24, textAlign: 'center' },
+  texte: { color: couleurs.texteSecondaire, fontSize: taillesTexte.corps, lineHeight: 24, textAlign: 'center' },
 });

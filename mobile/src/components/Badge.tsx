@@ -22,13 +22,13 @@ const styles = StyleSheet.create({
   // La forme pilule différencie le badge des cartes.
   base: { alignSelf: 'flex-start', paddingHorizontal: 11, paddingVertical: 6, borderRadius: rayons.pilule },
   // Le rôle de gérant est mis en valeur avec un fond ambre doux.
-  gerant: { backgroundColor: couleurs.ambreClair },
+  gerant: { backgroundColor: couleurs.attenteClair },
   // Les rôles membres et statuts utilisent un fond bleu pâle.
-  normal: { backgroundColor: couleurs.bleuClair },
+  normal: { backgroundColor: couleurs.fondChamp },
   // Le texte reste dense mais lisible.
-  texte: { fontSize: taillesTexte.petit, fontWeight: '700' },
+  texte: { fontSize: taillesTexte.petit, fontWeight: '700', borderRadius: 8 },
   // Le texte gérant reprend une teinte ambrée soutenue.
-  texteGerant: { color: couleurs.accent },
+  texteGerant: { color: couleurs.attente },
   // Le texte standard reprend le bleu principal.
-  texteNormal: { color: couleurs.principal },
+  texteNormal: { color: couleurs.secondaireMarque },
 });

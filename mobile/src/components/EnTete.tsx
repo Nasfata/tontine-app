@@ -30,5 +30,5 @@ const styles = StyleSheet.create({
   // La zone de retour est carrée et assez large pour le toucher.
   retour: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   // Le titre utilise la couleur et la hiérarchie principales.
-  titre: { flex: 1, color: couleurs.principal, fontSize: taillesTexte.titre, fontWeight: '700' },
+  titre: { flex: 1, color: couleurs.texte, fontSize: taillesTexte.titre, fontWeight: '800' },
 });

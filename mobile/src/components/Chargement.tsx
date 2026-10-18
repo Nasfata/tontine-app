@@ -14,5 +14,5 @@ const styles = StyleSheet.create({
   // Le conteneur occupe l'écran et centre les éléments.
   contenu: { flex: 1, minHeight: 180, justifyContent: 'center', alignItems: 'center', gap: 12, backgroundColor: couleurs.fond },
   // Le libellé reste en retrait visuel.
-  texte: { color: couleurs.secondaire, fontSize: taillesTexte.secondaire },
+  texte: { color: couleurs.texteSecondaire, fontSize: taillesTexte.secondaire },
 });

@@ -24,17 +24,17 @@ export function Bouton({ titre, chargement = false, desactive = false, erreur = 
 // Les styles utilisent uniquement les valeurs du thème partagé.
 const styles = StyleSheet.create({
   // Le bouton conserve au moins 52 pixels de hauteur tactile.
-  bouton: { minHeight: 52, justifyContent: 'center', alignItems: 'center', paddingHorizontal: espacements.moyen, borderRadius: rayons.petit, borderWidth: 1 },
+  bouton: { minHeight: 48, justifyContent: 'center', alignItems: 'center', paddingHorizontal: espacements.moyen, paddingVertical: 12, borderRadius: rayons.petit, borderWidth: 1 },
   // L'action principale utilise le bleu nuit.
   principal: { backgroundColor: couleurs.principal, borderColor: couleurs.principal },
   // L'action secondaire reste blanche et contourée.
   secondaire: { backgroundColor: couleurs.carte, borderColor: couleurs.bordure },
   // L'action de danger est rouge sans modifier les écrans existants.
-  danger: { backgroundColor: couleurs.rougeClair, borderColor: couleurs.rougeClair },
+  danger: { backgroundColor: couleurs.erreur, borderColor: couleurs.erreur },
   // Le focus clavier est signalé par une bordure accentuée.
   focus: { borderColor: couleurs.accent, borderWidth: 2 },
   // Une erreur renforce la bordure avec la couleur dédiée.
-  bordureErreur: { borderColor: couleurs.erreur },
+  bordureErreur: { borderColor: couleurs.erreurFormulaire },
   // La désactivation réduit légèrement la présence visuelle.
   desactive: { opacity: 0.55 },
   // L'état pressé apporte un retour visuel simple.

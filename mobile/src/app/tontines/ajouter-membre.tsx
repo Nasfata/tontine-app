@@ -14,6 +14,8 @@ import { appelerApi, ErreurApi } from '../../api';
 import { Bouton } from '../../components/Bouton';
 import { Avatar } from '../../components/Avatar';
 import { Carte } from '../../components/Carte';
+// L'en-tête partagé présente le titre et l'action de retour.
+import { EnTete } from '../../components/EnTete';
 import { ChampTexte } from '../../components/ChampTexte';
 // Le thème définit les messages et les espacements de cette page.
 import { couleurs, espacements, taillesTexte } from '../../theme';
@@ -168,12 +170,12 @@ export default function AjouterMembre() {
   }
   // L'écran reste défilable et évite le clavier mobile.
   return <KeyboardAvoidingView style={styles.ecran} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    {/* Le formulaire reprend la navigation sans barre native. */}
+    <EnTete titre="Ajouter un membre" retour style={styles.entete} />
     {/* Le défilement garde la saisie manuelle accessible avec le clavier ouvert. */}
     <ScrollView contentContainerStyle={styles.contenu} keyboardShouldPersistTaps="handled">
       {/* La carte contient l'action contacts et le formulaire manuel. */}
       <Carte style={styles.carte}>
-        {/* Le titre annonce l'action de l'écran. */}
-        <Text style={styles.titre}>Ajouter un membre</Text>
         {/* Le texte explique les deux méthodes disponibles. */}
         <Text style={styles.texte}>Choisis un contact ou saisis son numéro de téléphone.</Text>
         {/* Le bouton contacts est réservé aux plateformes natives. */}
@@ -213,14 +215,14 @@ const styles = StyleSheet.create({
   ecran: { flex: 1, backgroundColor: couleurs.fond },
   // Le contenu est centré et défile avec le clavier.
   contenu: { flexGrow: 1, padding: espacements.moyen, gap: espacements.moyen },
+  // L'en-tête suit les marges latérales des cartes.
+  entete: { marginHorizontal: espacements.moyen },
   // Les cartes regroupent formulaire et suggestions.
-  carte: { width: '100%', maxWidth: 480, alignSelf: 'center', gap: espacements.moyen, borderRadius: 18 },
-  // Le titre reprend la couleur sombre de la palette.
-  titre: { color: couleurs.principal, fontSize: taillesTexte.titre, fontWeight: '700' },
+  carte: { width: '100%', maxWidth: 480, alignSelf: 'center', gap: espacements.moyen, borderRadius: 16 },
   // Le texte explicatif utilise la couleur secondaire.
-  texte: { color: couleurs.secondaire, fontSize: taillesTexte.secondaire, lineHeight: 22 },
+  texte: { color: couleurs.texteSecondaire, fontSize: taillesTexte.secondaire, lineHeight: 22 },
   // Le navigateur affiche une note neutre au lieu d'une erreur.
-  infoWeb: { padding: espacements.moyen, borderRadius: 12, backgroundColor: couleurs.bleuClair, color: couleurs.principal, fontSize: taillesTexte.secondaire, lineHeight: 22 },
+  infoWeb: { padding: espacements.moyen, borderRadius: 12, backgroundColor: couleurs.fondChamp, color: couleurs.principal, fontSize: taillesTexte.secondaire, lineHeight: 22 },
   // Le libellé décrit le champ manuel.
   libelle: { color: couleurs.principal, fontSize: taillesTexte.secondaire, fontWeight: '600' },
   // Le bandeau commun donne un fond distinct aux messages d'action.
@@ -228,9 +230,9 @@ const styles = StyleSheet.create({
   // Le bandeau d'erreur utilise le rouge du thème.
   bandeauErreur: { backgroundColor: couleurs.rougeClair },
   // Le texte d'erreur reprend le rouge accessible.
-  texteErreur: { color: couleurs.erreur, fontSize: taillesTexte.secondaire, lineHeight: 21 },
+  texteErreur: { color: couleurs.erreurFormulaire, fontSize: taillesTexte.secondaire, lineHeight: 21 },
   // L'invitation à venir reçoit un ton doré doux.
-  bandeauInvitation: { backgroundColor: couleurs.ambreClair },
+  bandeauInvitation: { backgroundColor: couleurs.attenteClair },
   // Le texte d'invitation reste contrasté sur fond clair.
   texteInvitation: { color: couleurs.principal, fontSize: taillesTexte.secondaire, lineHeight: 21 },
   // Le succès utilise un fond vert atténué.

@@ -116,9 +116,9 @@ const styles = StyleSheet.create({
   // Le texte occupe la place disponible à côté de l'avatar.
   blocBonjour: { flex: 1, gap: espacements.tresPetit },
   // Le surtitre reste discret au-dessus de la salutation.
-  surtitre: { color: couleurs.secondaire, fontSize: taillesTexte.secondaire },
+  surtitre: { color: couleurs.texteSecondaire, fontSize: taillesTexte.secondaire },
   // Le prénom devient le premier repère de la page.
-  titre: { color: couleurs.principal, fontSize: taillesTexte.titre, fontWeight: '700' },
+  titre: { color: couleurs.texte, fontSize: taillesTexte.titre, fontWeight: '800' },
   // L'action de création utilise le ton bleu nuit et une grande zone tactile.
   lienCreation: { minHeight: 56, justifyContent: 'center', alignItems: 'center', borderRadius: 16, backgroundColor: couleurs.principal },
   // Le texte conserve la casse française naturelle.
@@ -126,29 +126,29 @@ const styles = StyleSheet.create({
   // Le bandeau d'erreur reprend la couleur rouge atténuée du thème.
   bandeauErreur: { gap: espacements.petit, backgroundColor: couleurs.rougeClair },
   // Le texte d'erreur reste contrasté.
-  texteErreur: { color: couleurs.erreur, fontSize: taillesTexte.secondaire },
+  texteErreur: { color: couleurs.erreurFormulaire, fontSize: taillesTexte.secondaire },
   // L'aide est présentée sous l'état vide après le choix de rejoindre.
-  aide: { padding: espacements.moyen, color: couleurs.secondaire, textAlign: 'center' },
+  aide: { padding: espacements.moyen, color: couleurs.texteSecondaire, textAlign: 'center' },
   // Les cartes sont espacées avec un rythme régulier.
   liste: { gap: espacements.moyen },
   // Le titre de section reprend une taille intermédiaire.
   titreSection: { color: couleurs.principal, fontSize: taillesTexte.sousTitre, fontWeight: '700' },
   // La zone tappable garde l'intégralité de la surface de carte active.
-  carteTappable: { borderRadius: 18 },
+  carteTappable: { borderRadius: 16 },
   // L'appui est visible sans changer la palette.
   appuye: { opacity: 0.82 },
   // Les cartes regroupent titre, badges, chiffres et progression.
-  carteTontine: { gap: espacements.petit, borderRadius: 18 },
+  carteTontine: { gap: espacements.petit, borderRadius: 16 },
   // Le nom reste lisible à côté du badge de rôle.
   ligneTitre: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: espacements.petit },
   // Le nom de tontine est le texte le plus important de la carte.
   nomTontine: { flex: 1, color: couleurs.principal, fontSize: taillesTexte.corps, fontWeight: '700' },
   // Les paramètres financiers et la fréquence sont secondaires.
-  information: { color: couleurs.secondaire, fontSize: taillesTexte.secondaire },
+  information: { color: couleurs.texteSecondaire, fontSize: taillesTexte.secondaire },
   // Le compteur de membres est visible avant la barre.
   compteur: { color: couleurs.principal, fontSize: taillesTexte.secondaire, fontWeight: '600' },
   // Le fond fin rend la capacité perceptible sans dominer la carte.
-  fondProgression: { height: 5, overflow: 'hidden', borderRadius: 4, backgroundColor: couleurs.bleuClair },
+  fondProgression: { height: 5, overflow: 'hidden', borderRadius: 4, backgroundColor: couleurs.fondChamp },
   // La progression reprend la couleur dorée du thème.
   progression: { height: '100%', borderRadius: 4, backgroundColor: couleurs.accent },
 });

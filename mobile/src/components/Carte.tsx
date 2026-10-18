@@ -14,6 +14,6 @@ export function Carte({ children, style, ...props }: CarteProps) {
 
 // Ces règles définissent une surface généreuse et régulière.
 const styles = StyleSheet.create({
-  // La carte contraste avec le fond chaud de l'application.
-  carte: { padding: espacements.moyen, borderRadius: rayons.moyen, backgroundColor: couleurs.carte, ...ombres.carte },
+  // La carte blanche reprend les angles et l'ombre des captures.
+  carte: { padding: espacements.moyen, borderRadius: rayons.carte, backgroundColor: couleurs.carte, ...ombres.carte },
 });

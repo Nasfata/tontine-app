@@ -23,8 +23,8 @@ export function Bouton({ titre, chargement = false, desactive = false, erreur = 
 
 // Les styles utilisent uniquement les valeurs du thème partagé.
 const styles = StyleSheet.create({
-  // Le bouton conserve au moins 52 pixels de hauteur tactile.
-  bouton: { minHeight: 48, justifyContent: 'center', alignItems: 'center', paddingHorizontal: espacements.moyen, paddingVertical: 12, borderRadius: rayons.petit, borderWidth: 1 },
+  // Le bouton est large et haut, avec les angles généreux des captures.
+  bouton: { minHeight: 56, justifyContent: 'center', alignItems: 'center', paddingHorizontal: espacements.moyen, paddingVertical: 16, borderRadius: rayons.carte, borderWidth: 1 },
   // L'action principale utilise le bleu nuit.
   principal: { backgroundColor: couleurs.principal, borderColor: couleurs.principal },
   // L'action secondaire reste blanche et contourée.

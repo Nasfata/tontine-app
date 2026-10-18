@@ -83,19 +83,19 @@ const styles = StyleSheet.create({
   // Le contenu reste centré et défilable selon la hauteur disponible.
   contenu: { flexGrow: 1, justifyContent: 'center', padding: espacements.moyen },
   // La carte blanche porte le formulaire.
-  carte: { width: '100%', maxWidth: 440, alignSelf: 'center', gap: espacements.moyen, borderRadius: 18 },
+  carte: { width: '100%', maxWidth: 440, alignSelf: 'center', gap: espacements.moyen, borderRadius: 16 },
   // Le titre utilise la couleur principale de l'application.
-  titre: { color: couleurs.principal, fontSize: taillesTexte.grandTitre, fontWeight: '700' },
+  titre: { color: couleurs.texte, fontSize: taillesTexte.grandTitre, fontWeight: '800' },
   // Le logo et la promesse sont centrés dans la carte.
   marque: { alignItems: 'center', gap: espacements.petit, paddingBottom: espacements.petit },
   // Le sous-titre reste gris et secondaire.
-  sousTitre: { color: couleurs.secondaire, fontSize: taillesTexte.secondaire },
+  sousTitre: { color: couleurs.texteSecondaire, fontSize: taillesTexte.secondaire },
   // Le message d'erreur dispose d'un fond rouge doux.
   bandeauErreur: { padding: espacements.moyen, borderRadius: 12, backgroundColor: couleurs.rougeClair },
   // Le texte d'erreur reste accessible et contrasté.
-  erreur: { color: couleurs.erreur, fontSize: taillesTexte.secondaire },
+  erreur: { color: couleurs.erreurFormulaire, fontSize: taillesTexte.secondaire },
   // Le texte du lien est centré sous le bouton.
-  texteLien: { color: couleurs.secondaire, textAlign: 'center', fontSize: taillesTexte.secondaire },
+  texteLien: { color: couleurs.texteSecondaire, textAlign: 'center', fontSize: taillesTexte.secondaire },
   // Le lien reprend la couleur principale des actions.
   lien: { color: couleurs.principal, fontWeight: '700' },
 });

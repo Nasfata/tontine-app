@@ -73,16 +73,14 @@ function NavigationAuthentifiee() {
     {/* Le texte aide à diagnostiquer un démarrage qui ne se termine pas. */}
     {chargementProlonge && <Text accessibilityRole="alert" style={styles.messageChargement}>Le démarrage prend plus de 10 secondes. Vérifiez la console du navigateur, puis rechargez la page.</Text>}
   </View>;
-  // Les routes sont déclarées explicitement dans le navigateur Expo Router.
-    // Le conteneur extérieur centre ; le conteneur intérieur a une largeur EXPLICITE
-  // (100 % avec un maximum de 480 px), sinon le Stack se réduit à 0 px de large.
+  // Les routes Expo Router occupent maintenant toute la largeur disponible.
   return <View style={styles.conteneur}><View style={styles.colonne}><Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: couleurs.fond } }}>
     <Stack.Screen name="index" />
     <Stack.Screen name="connexion" />
     <Stack.Screen name="inscription" />
     <Stack.Screen name="(onglets)" />
-    <Stack.Screen name="tontines/[id]" options={{ headerShown: true, title: 'Détail de la tontine', headerStyle: styles.entete, headerTintColor: couleurs.principal, headerTitleStyle: styles.titreEntete }} />
-    <Stack.Screen name="tontines/ajouter-membre" options={{ headerShown: true, title: 'Ajouter un membre', headerStyle: styles.entete, headerTintColor: couleurs.principal, headerTitleStyle: styles.titreEntete }} />
+    <Stack.Screen name="tontines/[id]" options={{ headerShown: false }} />
+    <Stack.Screen name="tontines/ajouter-membre" options={{ headerShown: false }} />
   </Stack></View></View>;
 }
 
@@ -92,12 +90,12 @@ export default function RootLayout() {
   return <AuthProvider><NavigationAuthentifiee /></AuthProvider>;
 }
 
-// Ces styles centrent l'interface web dans une largeur proche d'un téléphone.
+// Ces styles laissent l'application occuper toute la largeur du navigateur.
 const styles = StyleSheet.create({
-  // Occupe tout l'écran et centre la colonne sur les grands écrans web
-  conteneur: { flex: 1, alignItems: 'center', backgroundColor: couleurs.fond },
-  // Largeur explicite : 100 % sur mobile, 480 px maximum sur le web
-  colonne: { flex: 1, width: '100%', maxWidth: Platform.OS === 'web' ? 480 : undefined, backgroundColor: couleurs.fond },
+  // Le conteneur remplit la fenêtre sur mobile et sur ordinateur.
+  conteneur: { flex: 1, width: '100%', alignItems: 'stretch', backgroundColor: couleurs.fond },
+  // La pile n'impose plus de colonne fixe sur grand écran.
+  colonne: { flex: 1, width: '100%', backgroundColor: couleurs.fond },
   entete: { backgroundColor: couleurs.fond },
   titreEntete: { color: couleurs.principal, fontWeight: '700' },
   chargement: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: couleurs.fond },

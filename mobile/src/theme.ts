@@ -44,10 +44,16 @@ export const couleurs = {
   blancTranslucide: 'rgba(255,255,255,0.18)',
   // Le blanc très translucide sert aux détails d'en-tête.
   blancAttenue: 'rgba(255,255,255,0.7)',
+  // Le voile assombrit les confirmations avec la couleur principale.
+  voile: 'rgba(11,44,77,0.45)',
   // Le noir fournit la teinte des ombres.
   ombre: '#000000',
   // Le gris de validation garde une coche discrète.
   gris: '#CCCCCC',
+  // Le fond du voile reprend l'obscurité de la fenêtre de confirmation.
+  voileModale: 'rgba(0,0,0,0.48)',
+  // Le petit texte en-tête reste lisible sur le bleu nuit.
+  texteEntete: 'rgba(255,255,255,0.72)',
   // Ces noms historiques gardent les écrans compatibles pendant la refonte.
   secondaire: '#555555',
   // Ce ton pâle reste utilisé comme surface de badge existante.
@@ -57,10 +63,10 @@ export const couleurs = {
 };
 
 // Ces espacements reprennent les mesures usuelles du guide.
-export const espacements = { tresPetit: 4, petit: 8, moyen: 14, grand: 20, tresGrand: 32 };
+export const espacements = { minuscule: 4, tresPetit: 6, petit: 8, moyen: 14, grand: 20, tresGrand: 32 };
 
 // Ces rayons reprennent les formes des contrôles et cartes.
-export const rayons = { tresPetit: 8, petit: 10, moyen: 12, carte: 16, grand: 24, pilule: 20 };
+export const rayons = { tresPetit: 8, petit: 10, moyen: 12, recherche: 14, carte: 16, grand: 24, pilule: 20, cercle: 999 };
 
 // La police système native est utilisée sans chargement externe.
 export const typographie = { meta: 10, aide: 12, libelle: 13, corps: 15, valeur: 16, titreCarte: 18, titreAuth: 26 };

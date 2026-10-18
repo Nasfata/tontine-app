@@ -191,21 +191,21 @@ const styles = StyleSheet.create({
   // Le contenu est centré et peut défiler avec le clavier.
   contenu: { flexGrow: 1, padding: espacements.moyen, gap: espacements.moyen },
   // La carte limite la largeur du formulaire sur grand écran.
-  carte: { width: '100%', maxWidth: 480, alignSelf: 'center', alignItems: 'stretch', gap: espacements.moyen, borderRadius: 18 },
+  carte: { width: '100%', maxWidth: 480, alignSelf: 'center', alignItems: 'stretch', gap: espacements.moyen, borderRadius: 16 },
   // Le titre reprend la couleur principale sombre.
-  titre: { color: couleurs.principal, fontSize: taillesTexte.titre, fontWeight: '700', textAlign: 'center' },
+  titre: { color: couleurs.texte, fontSize: taillesTexte.titre, fontWeight: '800', textAlign: 'center' },
   // Les erreurs disposent d'un fond distinct et d'un texte contrasté.
   bandeauErreur: { padding: espacements.moyen, borderRadius: 12, backgroundColor: couleurs.rougeClair },
-  erreur: { color: couleurs.erreur, fontSize: taillesTexte.secondaire },
+  erreur: { color: couleurs.erreurFormulaire, fontSize: taillesTexte.secondaire },
   // Le succès est affiché dans un bandeau vert doux.
   bandeauSucces: { padding: espacements.moyen, borderRadius: 12, backgroundColor: couleurs.vertClair },
   succes: { color: couleurs.succes, fontSize: taillesTexte.secondaire },
   // Le voile assombrit le profil derrière la confirmation.
-  voile: { flex: 1, justifyContent: 'center', padding: espacements.moyen, backgroundColor: 'rgba(15, 42, 67, 0.45)' },
+  voile: { flex: 1, justifyContent: 'center', padding: espacements.moyen, backgroundColor: couleurs.voile },
   // La fenêtre de confirmation garde une largeur confortable sur le web.
   confirmation: { width: '100%', maxWidth: 420, alignSelf: 'center', gap: espacements.moyen },
   // Le titre de confirmation utilise le bleu nuit.
   titreConfirmation: { color: couleurs.principal, fontSize: taillesTexte.sousTitre, fontWeight: '700' },
   // Le texte explique brièvement l'action.
-  texteConfirmation: { color: couleurs.secondaire, fontSize: taillesTexte.secondaire, lineHeight: 22 },
+  texteConfirmation: { color: couleurs.texteSecondaire, fontSize: taillesTexte.secondaire, lineHeight: 22 },
 });

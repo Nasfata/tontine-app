@@ -12,6 +12,8 @@ import { Badge } from '../../components/Badge';
 import { Bouton } from '../../components/Bouton';
 import { Carte } from '../../components/Carte';
 import { Chargement } from '../../components/Chargement';
+// L'en-tête partagé remplace le titre natif de cette page.
+import { EnTete } from '../../components/EnTete';
 // Les libellés masquent les valeurs techniques reçues du backend.
 import { formaterMontant, libelleFrequence, libelleStatut } from '../../libelles';
 // Les couleurs et espacements viennent du thème commun.
@@ -88,7 +90,9 @@ export default function DetailTontine() {
   // L'en-tête système affiche le vrai nom et conserve le bouton retour de la pile.
   return <>
     {/* Le titre de la barre de navigation suit la tontine chargée. */}
-    <Stack.Screen options={{ title: detail.tontine.nom }} />
+    <Stack.Screen options={{ headerShown: false }} />
+    {/* Le titre et le retour restent cohérents sur web et mobile. */}
+    <EnTete titre={detail.tontine.nom} retour />
     {/* La page entière reste défilable sur les petits écrans. */}
     <ScrollView contentContainerStyle={styles.contenu}>
       {/* Le statut lisible apparaît sous le titre système. */}
@@ -143,29 +147,29 @@ const styles = StyleSheet.create({
   // Chaque petite carte occupe environ la moitié de la largeur.
   carteChiffre: { flexGrow: 1, flexBasis: '45%', minHeight: 92, justifyContent: 'space-between', gap: espacements.petit },
   // Le nom du chiffre clé reste discret.
-  libelleChiffre: { color: couleurs.secondaire, fontSize: taillesTexte.petit },
+  libelleChiffre: { color: couleurs.texteSecondaire, fontSize: taillesTexte.petit },
   // La valeur est mise en évidence avec le bleu nuit.
-  valeurChiffre: { color: couleurs.principal, fontSize: taillesTexte.corps, fontWeight: '700' },
+  valeurChiffre: { color: couleurs.texte, fontSize: taillesTexte.corps, fontWeight: '800' },
   // Les cartes de section utilisent des espacements constants.
   section: { gap: espacements.moyen },
   // Le titre sépare nettement les groupes de contenu.
-  titreSection: { color: couleurs.principal, fontSize: taillesTexte.sousTitre, fontWeight: '700' },
+  titreSection: { color: couleurs.texte, fontSize: taillesTexte.sousTitre, fontWeight: '700' },
   // Chaque membre apparaît sur une ligne compacte.
   ligneMembre: { minHeight: 54, flexDirection: 'row', alignItems: 'center', gap: espacements.petit, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: couleurs.bordure },
   // Le nom occupe l'espace laissé entre avatar et badge.
-  nomMembre: { flex: 1, color: couleurs.principal, fontSize: taillesTexte.secondaire, fontWeight: '600' },
+  nomMembre: { flex: 1, color: couleurs.texte, fontSize: taillesTexte.secondaire, fontWeight: '600' },
   // La rangée des règles aligne le titre et son action.
   enteteRegles: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   // Le texte de l'action reprend la couleur accentuée.
   texteAction: { color: couleurs.accent, fontSize: taillesTexte.secondaire, fontWeight: '700' },
   // Le contenu des règles reste lisible sur plusieurs lignes.
-  texteRegles: { color: couleurs.secondaire, fontSize: taillesTexte.corps, lineHeight: 24 },
+  texteRegles: { color: couleurs.texteSecondaire, fontSize: taillesTexte.corps, lineHeight: 24 },
   // Les cartes vides montrent clairement l'emplacement des futures sections.
   carteEquipe: { minHeight: 112, justifyContent: 'center', gap: espacements.petit, borderWidth: 1, borderStyle: 'dashed', borderColor: couleurs.bordure },
   // Le texte d'aide reste secondaire.
-  texteSecondaire: { color: couleurs.secondaire, fontSize: taillesTexte.secondaire },
+  texteSecondaire: { color: couleurs.texteSecondaire, fontSize: taillesTexte.secondaire },
   // L'erreur de chargement occupe une zone confortable.
   erreurPage: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: espacements.moyen, padding: espacements.grand, backgroundColor: couleurs.fond },
   // Le message d'erreur utilise la couleur dédiée.
-  texteErreur: { color: couleurs.erreur, textAlign: 'center', fontSize: taillesTexte.corps },
+  texteErreur: { color: couleurs.erreurFormulaire, textAlign: 'center', fontSize: taillesTexte.corps },
 });

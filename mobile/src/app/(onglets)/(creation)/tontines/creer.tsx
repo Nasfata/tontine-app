@@ -9,6 +9,8 @@ import { appelerApi } from '../../../../api';
 // Les champs, carte et bouton assurent une apparence commune.
 import { Bouton } from '../../../../components/Bouton';
 import { Carte } from '../../../../components/Carte';
+// L'en-tête partagé donne un retour clair avant le formulaire.
+import { EnTete } from '../../../../components/EnTete';
 import { ChampTexte } from '../../../../components/ChampTexte';
 // Les erreurs utilisent un bandeau visuel du thème.
 import { couleurs, espacements, taillesTexte } from '../../../../theme';
@@ -73,10 +75,10 @@ export default function CreerTontine() {
   }
   // Le clavier mobile ne masque pas les champs et le pied d'action reste visible.
   return <KeyboardAvoidingView style={styles.ecran} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    {/* Le formulaire suit la navigation à en-têtes natifs masqués. */}
+    <EnTete titre="Créer une tontine" retour style={styles.entete} />
     {/* Le contenu central défile au-dessus du bouton fixe. */}
     <ScrollView contentContainerStyle={styles.contenu} keyboardShouldPersistTaps="handled">
-      {/* Le titre et les sections structurent le formulaire. */}
-      <Text style={styles.titre}>Créer une tontine</Text>
       {/* La première carte regroupe le nom et le montant. */}
       <Carte style={styles.section}>
         {/* Le sous-titre introduit les informations générales. */}
@@ -128,10 +130,10 @@ const styles = StyleSheet.create({
   ecran: { flex: 1, backgroundColor: couleurs.fond },
   // Le formulaire reste défilable même lorsque le clavier est ouvert.
   contenu: { flexGrow: 1, padding: espacements.moyen, paddingBottom: espacements.petit, gap: espacements.moyen },
-  // Le titre est aligné à gauche comme une page d'application native.
-  titre: { color: couleurs.principal, fontSize: taillesTexte.titre, fontWeight: '700' },
+  // L'en-tête suit les marges du contenu défilant.
+  entete: { marginHorizontal: espacements.moyen },
   // Les cartes de section gardent une structure espacée.
-  section: { gap: espacements.moyen, borderRadius: 18 },
+  section: { gap: espacements.moyen, borderRadius: 16 },
   // Le titre de section reste distinct des libellés de champ.
   titreSection: { color: couleurs.principal, fontSize: taillesTexte.sousTitre, fontWeight: '700' },
   // Le libellé du sélecteur reprend la hiérarchie des champs.
@@ -141,25 +143,25 @@ const styles = StyleSheet.create({
   // Une option inactive utilise un fond blanc et une bordure légère.
   boutonFrequence: { flex: 1, minHeight: 52, justifyContent: 'center', alignItems: 'center', paddingHorizontal: espacements.petit, borderWidth: 1, borderColor: couleurs.bordure, borderRadius: 12, backgroundColor: couleurs.carte },
   // L'option choisie est indiquée par l'accent doré doux.
-  frequenceActive: { borderColor: couleurs.accent, backgroundColor: couleurs.ambreClair },
+  frequenceActive: { borderColor: couleurs.accent, backgroundColor: couleurs.attenteClair },
   // Le texte inactif reste gris et lisible.
-  texteFrequence: { color: couleurs.secondaire, fontSize: taillesTexte.petit, fontWeight: '600', textAlign: 'center' },
+  texteFrequence: { color: couleurs.texteSecondaire, fontSize: taillesTexte.petit, fontWeight: '600', textAlign: 'center' },
   // Le texte actif reprend le bleu nuit.
   texteFrequenceActif: { color: couleurs.principal },
   // Le champ de règles dispose de plusieurs lignes.
   champMultiligne: { minHeight: 112, paddingTop: espacements.moyen },
   // La carte de résumé est visuellement mise en valeur.
-  resume: { gap: espacements.petit, borderWidth: 1, borderColor: couleurs.ambreClair, backgroundColor: couleurs.ambreClair },
+  resume: { gap: espacements.petit, borderWidth: 1, borderColor: couleurs.attenteClair, backgroundColor: couleurs.attenteClair },
   // Le titre du résumé est marqué.
   titreResume: { color: couleurs.principal, fontSize: taillesTexte.corps, fontWeight: '700' },
   // Le détail de durée reste secondaire.
-  texteResume: { color: couleurs.secondaire, fontSize: taillesTexte.secondaire, lineHeight: 22 },
+  texteResume: { color: couleurs.texteSecondaire, fontSize: taillesTexte.secondaire, lineHeight: 22 },
   // La cagnotte est mise en évidence sans code technique.
   cagnotte: { color: couleurs.principal, fontSize: taillesTexte.corps, fontWeight: '700' },
   // Le message d'erreur utilise un bandeau coloré.
   bandeauErreur: { padding: espacements.moyen, borderRadius: 12, backgroundColor: couleurs.rougeClair },
   // Le texte d'erreur est fortement contrasté.
-  texteErreur: { color: couleurs.erreur, fontSize: taillesTexte.secondaire },
+  texteErreur: { color: couleurs.erreurFormulaire, fontSize: taillesTexte.secondaire },
   // Le pied fixe distingue le bouton du contenu à faire défiler.
   pied: { paddingHorizontal: espacements.moyen, paddingTop: espacements.petit, paddingBottom: espacements.moyen, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: couleurs.bordure, backgroundColor: couleurs.fond },
 });

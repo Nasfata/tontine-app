@@ -9,6 +9,8 @@ const jwt = require('jsonwebtoken');
 
 // Notre connexion MySQL (le fichier db.js est un dossier plus haut, d'où "../")
 const db = require('../db');
+// Cette fonction harmonise le numéro avant les recherches et les écritures.
+const { normaliserTelephone } = require('../utils/telephone');
 
 // Un Router permet de ranger nos routes dans un fichier séparé de server.js
 const router = express.Router();
@@ -31,7 +33,9 @@ router.post('/inscription', async (req, res) => {
   try {
     // req.body = le JSON envoyé par l'app.
     // On "extrait" les 3 champs dont on a besoin.
-    const { nom, telephone, motDePasse } = req.body;
+    const { nom, telephone: telephoneSaisi, motDePasse } = req.body;
+    // Le numéro enregistré ne contient pas d'espaces, points ou tirets.
+    const telephone = normaliserTelephone(telephoneSaisi);
 
     // Vérifie que les 3 champs sont remplis
     if (!nom || !telephone || !motDePasse) {
@@ -44,16 +48,14 @@ router.post('/inscription', async (req, res) => {
       return res.status(400).json({ erreur: 'Le mot de passe doit avoir 6 caractères minimum' });
     }
 
-    // Cherche si ce numéro existe déjà.
-    // Les "?" sont remplacés par les valeurs du tableau [telephone].
-    // C'est ce qui protège contre les attaques par "injection SQL".
-    const [existants] = await db.query(
-      'SELECT id FROM Utilisateur WHERE telephone = ?',
-      [telephone]
-    );
+    // Prisma recherche le compte par téléphone sans assembler une requête SQL.
+    const existant = await db.utilisateur.findUnique({
+      where: { telephone },
+      select: { id: true },
+    });
 
     // Si on a trouvé au moins une ligne, le numéro est déjà pris
-    if (existants.length > 0) {
+    if (existant) {
       // 409 = conflit
       return res.status(409).json({ erreur: 'Ce numéro a déjà un compte' });
     }
@@ -63,13 +65,13 @@ router.post('/inscription', async (req, res) => {
     const hash = await bcrypt.hash(motDePasse, 10);
 
     // Insère le nouvel utilisateur dans la table Utilisateur
-    const [resultat] = await db.query(
-      'INSERT INTO Utilisateur (nom, telephone, mot_de_passe_hash) VALUES (?, ?, ?)',
-      [nom, telephone, hash]
-    );
+    const utilisateurCree = await db.utilisateur.create({
+      data: { nom, telephone, motDePasseHash: hash },
+      select: { id: true },
+    });
 
-    // insertId = l'id que MySQL vient de créer automatiquement
-    const id = resultat.insertId;
+    // L'identifiant est attribué automatiquement par MySQL.
+    const id = utilisateurCree.id;
 
     // 201 = "créé avec succès".
     // On renvoie le token tout de suite : l'utilisateur est connecté directement
@@ -91,7 +93,9 @@ router.post('/inscription', async (req, res) => {
 router.post('/connexion', async (req, res) => {
   try {
     // On récupère téléphone et mot de passe envoyés par l'app
-    const { telephone, motDePasse } = req.body;
+    const { telephone: telephoneSaisi, motDePasse } = req.body;
+    // La même normalisation est utilisée pour rechercher le compte.
+    const telephone = normaliserTelephone(telephoneSaisi);
 
     // Vérifie que les deux champs sont remplis
     if (!telephone || !motDePasse) {
@@ -99,14 +103,12 @@ router.post('/connexion', async (req, res) => {
     }
 
     // Cherche l'utilisateur par son numéro de téléphone
-    const [lignes] = await db.query(
-      'SELECT id, nom, telephone, photo, mot_de_passe_hash FROM Utilisateur WHERE telephone = ?',
-      [telephone]
-    );
+    const utilisateur = await db.utilisateur.findUnique({
+      where: { telephone },
+      select: { id: true, nom: true, telephone: true, photo: true, motDePasseHash: true },
+    });
 
     // lignes[0] = le premier résultat (ou "undefined" si personne n'a ce numéro)
-    const utilisateur = lignes[0];
-
     // Même message d'erreur si le numéro OU le mot de passe est faux :
     // ça évite de révéler quels numéros ont un compte.
     if (!utilisateur) {
@@ -116,7 +118,7 @@ router.post('/connexion', async (req, res) => {
 
     // bcrypt.compare : hash le mot de passe saisi et le compare au hash stocké.
     // Renvoie true si ça correspond, false sinon.
-    const motDePasseOk = await bcrypt.compare(motDePasse, utilisateur.mot_de_passe_hash);
+    const motDePasseOk = await bcrypt.compare(motDePasse, utilisateur.motDePasseHash);
 
     if (!motDePasseOk) {
       return res.status(401).json({ erreur: 'Téléphone ou mot de passe incorrect' });

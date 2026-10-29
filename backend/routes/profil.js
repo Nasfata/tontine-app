@@ -9,6 +9,8 @@ const multer = require('multer');
 const db = require('../db');
 // Notre middleware qui vérifie que l'utilisateur est connecté
 const verifierToken = require('../middleware/auth');
+// Cette fonction renvoie partout les numéros sous un format cohérent.
+const { normaliserTelephone } = require('../utils/telephone');
 
 const router = express.Router();
 
@@ -59,19 +61,20 @@ router.use(verifierToken);
 router.get('/', async (req, res) => {
   try {
     // req.utilisateurId a été rempli par le middleware verifierToken
-    const [lignes] = await db.query(
-      'SELECT id, nom, telephone, photo, date_creation FROM Utilisateur WHERE id = ?',
-      [req.utilisateurId]
-    );
+    const utilisateur = await db.utilisateur.findUnique({
+      where: { id: req.utilisateurId },
+      select: { id: true, nom: true, telephone: true, photo: true, dateCreation: true },
+    });
 
     // Si aucune ligne : l'utilisateur n'existe plus
-    if (lignes.length === 0) {
+    if (!utilisateur) {
       // 404 = introuvable
       return res.status(404).json({ erreur: 'Utilisateur introuvable' });
     }
 
     // lignes[0] = l'utilisateur (sans le hash du mot de passe)
-    res.json(lignes[0]);
+    // Le numéro renvoyé suit le même format que celui enregistré par les routes.
+    res.json({ ...utilisateur, telephone: normaliserTelephone(utilisateur.telephone) });
   } catch (err) {
     console.error('Erreur lecture profil :', err.message);
     res.status(500).json({ erreur: 'Erreur serveur' });
@@ -83,7 +86,9 @@ router.get('/', async (req, res) => {
 // ======================================================================
 router.put('/', async (req, res) => {
   try {
-    const { nom, telephone } = req.body;
+    const { nom, telephone: telephoneSaisi } = req.body;
+    // Le numéro est normalisé avant la vérification de doublon et la mise à jour.
+    const telephone = normaliserTelephone(telephoneSaisi);
 
     // Les deux champs sont obligatoires
     if (!nom || !telephone) {
@@ -92,20 +97,20 @@ router.put('/', async (req, res) => {
 
     // Vérifie que le numéro n'appartient pas à UN AUTRE utilisateur.
     // "id <> ?" veut dire "id différent de"
-    const [doublon] = await db.query(
-      'SELECT id FROM Utilisateur WHERE telephone = ? AND id <> ?',
-      [telephone, req.utilisateurId]
-    );
+    const doublon = await db.utilisateur.findFirst({
+      where: { telephone, id: { not: req.utilisateurId } },
+      select: { id: true },
+    });
 
-    if (doublon.length > 0) {
+    if (doublon) {
       return res.status(409).json({ erreur: 'Ce numéro est déjà utilisé' });
     }
 
     // Met à jour la ligne de l'utilisateur connecté
-    await db.query(
-      'UPDATE Utilisateur SET nom = ?, telephone = ? WHERE id = ?',
-      [nom, telephone, req.utilisateurId]
-    );
+    await db.utilisateur.update({
+      where: { id: req.utilisateurId },
+      data: { nom, telephone },
+    });
 
     // Le cahier demande que les changements soient visibles partout :
     // c'est automatique, car les autres tables pointent vers l'id
@@ -132,10 +137,10 @@ router.post('/photo', upload.single('photo'), async (req, res) => {
     const cheminPhoto = `/uploads/${req.file.filename}`;
 
     // Enregistre ce chemin dans la colonne "photo"
-    await db.query(
-      'UPDATE Utilisateur SET photo = ? WHERE id = ?',
-      [cheminPhoto, req.utilisateurId]
-    );
+    await db.utilisateur.update({
+      where: { id: req.utilisateurId },
+      data: { photo: cheminPhoto },
+    });
 
     res.json({ message: 'Photo mise à jour', photo: cheminPhoto });
   } catch (err) {

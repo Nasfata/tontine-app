@@ -33,6 +33,18 @@ const routesProfil = require('./routes/profil');
 // Branche-les sous /api/profil
 app.use('/api/profil', routesProfil);
 
+// Importe les routes sécurisées de tontines.
+const routesTontines = require('./routes/tontines');
+
+// Branche les routes sous /api/tontines.
+app.use('/api/tontines', routesTontines);
+
+// Importe les routes de correspondance de contacts.
+const routesContacts = require('./routes/contacts');
+
+// Branche les correspondances sous /api/contacts.
+app.use('/api/contacts', routesContacts);
+
 // Rend le dossier "uploads" accessible par URL :
 // une photo sera visible sur http://localhost:3000/uploads/nom-du-fichier.jpg
 // path est un outil Node pour construire un chemin de fichier
@@ -52,16 +64,16 @@ app.get('/test-db', async (req, res) => {
   try {
     // Envoie une requête SQL à MySQL et attend la réponse.
     // [rows] = on récupère le premier élément du résultat (les lignes de la table)
-    const [rows] = await db.query('SELECT * FROM Role');
+    const rows = await db.role.findMany();
 
     // Renvoie les lignes au navigateur, au format JSON
     res.json(rows);
   } catch (err) {
     // Si MySQL a un problème, on affiche l'erreur dans le terminal pour t'aider
-    console.error('Erreur MySQL :', err.message);
+    console.error('Erreur base de données :', err.message);
 
     // 500 = erreur serveur. On renvoie aussi le message pour que tu voies le souci
-    res.status(500).json({ erreur: err.message });
+    res.status(500).json({ erreur: 'Impossible de lire les rôles dans la base de données' });
   }
 });
 

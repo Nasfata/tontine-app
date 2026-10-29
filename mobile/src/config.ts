@@ -2,7 +2,7 @@
 import { Platform } from 'react-native';
 
 // ⚠️ REMPLACE par l'IP de TON PC (trouvée avec la commande ipconfig)
-const IP_DU_PC = '192.168.1.13';
+const IP_DU_PC = '192.168.1.17';
 
 // Le port de ton backend (celui du fichier .env du backend)
 const PORT = 3000;

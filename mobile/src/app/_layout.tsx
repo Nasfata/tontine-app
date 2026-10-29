@@ -17,11 +17,6 @@ function NavigationAuthentifiee() {
   const { utilisateur, chargement } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  // Ces journaux temporaires aident à suivre l'authentification et la route active.
-  useEffect(() => {
-    // On affiche les valeurs utiles au diagnostic dans la console du navigateur.
-    console.log('[Layout racine] État de navigation.', { chargement, utilisateur, segments });
-  }, [chargement, utilisateur, segments]);
   // Le web attend le nettoyage avant de lancer les appels des écrans.
   const [nettoyageTermine, setNettoyageTermine] = useState(!(Platform.OS === 'web' && __DEV__));
   // Cet état indique que le démarrage dépasse le délai prévu de dix secondes.
@@ -79,8 +74,9 @@ function NavigationAuthentifiee() {
     <Stack.Screen name="connexion" />
     <Stack.Screen name="inscription" />
     <Stack.Screen name="(onglets)" />
-    <Stack.Screen name="tontines/[id]" options={{ headerShown: false }} />
-    <Stack.Screen name="tontines/ajouter-membre" options={{ headerShown: false }} />
+    {/* <Stack.Screen name="tontines/[id]" options={{ headerShown: false }} /> */}
+    <Stack.Screen name="tontines/creer" options={{ presentation: 'transparentModal', headerShown: false, contentStyle: { backgroundColor: 'transparent' } }} />
+    <Stack.Screen name="tontines/ajouter-membre" options={{ presentation: 'transparentModal', headerShown: false, contentStyle: { backgroundColor: 'transparent' } }} />
   </Stack></View></View>;
 }
 
@@ -96,8 +92,6 @@ const styles = StyleSheet.create({
   conteneur: { flex: 1, width: '100%', alignItems: 'stretch', backgroundColor: couleurs.fond },
   // La pile n'impose plus de colonne fixe sur grand écran.
   colonne: { flex: 1, width: '100%', backgroundColor: couleurs.fond },
-  entete: { backgroundColor: couleurs.fond },
-  titreEntete: { color: couleurs.principal, fontWeight: '700' },
   chargement: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: couleurs.fond },
   messageChargement: { maxWidth: 420, marginTop: 20, paddingHorizontal: 24, color: couleurs.secondaire, textAlign: 'center' },
 });

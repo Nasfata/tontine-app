@@ -13,10 +13,10 @@ export default function OngletsLayout() {
   return <View style={styles.conteneur}><Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: couleurs.principal, tabBarInactiveTintColor: couleurs.inactif, tabBarStyle: styles.barre, tabBarLabelStyle: styles.libelle, sceneStyle: styles.scene }}>
     {/* Le premier onglet présente les tontines de l'utilisateur. */}
     <Tabs.Screen name="accueil" options={{ title: 'Tontines', tabBarLabel: ({ focused, color }) => <Text style={[styles.libelle, { color, fontWeight: focused ? '800' : '600' }]}>Tontines</Text>, tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? 'people' : 'people-outline'} color={color} size={22} /> }} />
-    {/* Le groupe dédié conserve l'adresse /tontines/creer et forme un onglet unique. */}
-    <Tabs.Screen name="(creation)" options={{ title: 'Créer', tabBarLabel: ({ focused, color }) => <Text style={[styles.libelle, { color, fontWeight: focused ? '800' : '600' }]}>Créer</Text>, tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? 'add-circle' : 'add-circle-outline'} color={color} size={22} /> }} />
     {/* Le profil reste accessible en permanence dans la barre du bas. */}
-    <Tabs.Screen name="profil" options={{ title: 'Profil', tabBarLabel: ({ focused, color }) => <Text style={[styles.libelle, { color, fontWeight: focused ? '800' : '600' }]}>Profil</Text>, tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? 'person' : 'person-outline'} color={color} size={22} /> }} />
+    {/* Profil : n est pas accessible via l'avatar, sans onglet dans la barre du bas. */}
+    <Tabs.Screen name="profil" options={{ href: null, title: 'Mon profil' }} />
+    <Tabs.Screen name="tontines/[id]" options={{ href: null }} />
   </Tabs></View>;
 }
 

@@ -1,15 +1,15 @@
-// Le pool MySQL partagé sert à vérifier l'appartenance à une tontine.
+// Le client Prisma partagé sert à vérifier l'appartenance à une tontine.
 const db = require('../db');
 
 // Cette fonction renvoie le rôle de la personne ou null si elle n'est pas membre.
 async function verifierRole(utilisateurId, tontineId) {
-  // La requête paramétrée évite toute injection SQL.
-  const [lignes] = await db.query(
-    'SELECT role_code FROM Participation WHERE utilisateur_id = ? AND tontine_id = ?',
-    [utilisateurId, tontineId]
-  );
-  // Une ligne trouvée contient le rôle propre à cette tontine.
-  return lignes.length > 0 ? lignes[0].role_code : null;
+  // Prisma sélectionne le rôle de cette personne dans cette tontine.
+  const participation = await db.participation.findUnique({
+    where: { utilisateurId_tontineId: { utilisateurId, tontineId: Number(tontineId) } },
+    select: { roleCode: true },
+  });
+  // Une participation absente signifie que la personne n'a aucun rôle ici.
+  return participation ? participation.roleCode : null;
 }
 
 // La fonction peut être réutilisée par les autres routes du backend.

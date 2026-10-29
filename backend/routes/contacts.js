@@ -2,7 +2,7 @@
 const express = require('express');
 // Le module natif calcule les empreintes SHA-256 côté serveur.
 const crypto = require('crypto');
-// Le pool partagé permet de rechercher les comptes inscrits.
+// Prisma permet de rechercher les comptes inscrits dans MySQL.
 const db = require('../db');
 // Le middleware limite cette route aux utilisateurs connectés.
 const verifierToken = require('../middleware/auth');
@@ -44,13 +44,13 @@ router.post('/correspondance', async (req, res) => {
     // L'ensemble accélère la comparaison locale et ignore les empreintes répétées.
     const empreintes = new Set(empreintesRecues.map((empreinte) => empreinte.toLowerCase()));
     // Cette requête exclut les membres déjà inscrits et l'utilisateur appelant.
-    const [utilisateurs] = await db.query(
-      `SELECT u.id, u.nom, u.photo, u.telephone
-       FROM Utilisateur AS u
-       LEFT JOIN Participation AS p ON p.utilisateur_id = u.id AND p.tontine_id = ?
-       WHERE u.id <> ? AND p.utilisateur_id IS NULL`,
-      [tontineId, req.utilisateurId]
-    );
+    const utilisateurs = await db.utilisateur.findMany({
+      where: {
+        id: { not: req.utilisateurId },
+        participations: { none: { tontineId: Number(tontineId) } },
+      },
+      select: { id: true, nom: true, photo: true, telephone: true },
+    });
     // Le serveur calcule le hash à partir du numéro canonique déjà enregistré.
     const correspondances = utilisateurs.filter((utilisateur) => {
       // Les entrées sans numéro ne peuvent pas correspondre à une empreinte.

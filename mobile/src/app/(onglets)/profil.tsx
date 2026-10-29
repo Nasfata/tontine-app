@@ -1,7 +1,7 @@
 // React gère le chargement du profil et les retours des formulaires.
 import { useEffect, useState } from 'react';
 // React Native fournit l'image et les conteneurs adaptés à toutes les plateformes.
-import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 // Expo ImagePicker ouvre la photothèque native ou le sélecteur du navigateur.
 import * as ImagePicker from 'expo-image-picker';
 // Le contexte fournit le profil local à actualiser après les modifications.
@@ -15,6 +15,9 @@ import { ChampTexte } from '../../components/ChampTexte';
 import { Avatar } from '../../components/Avatar';
 import { Carte } from '../../components/Carte';
 import { Chargement } from '../../components/Chargement';
+// Le bandeau d'identité et la fenêtre de confirmation sont communs à l'app.
+import { EnTete } from '../../components/EnTete';
+import { FeuilleModale } from '../../components/FeuilleModale';
 // Le thème fournit les couleurs, les espaces et la hiérarchie typographique.
 import { couleurs, espacements, taillesTexte } from '../../theme';
 
@@ -140,8 +143,12 @@ export default function Profil() {
   }
   // Le démarrage affiche un indicateur pendant la lecture du profil.
   if (chargement) return <Chargement texte="Chargement du profil…" />;
-  // L'écran garde son contenu défilable lorsque le clavier est ouvert.
-  return <KeyboardAvoidingView style={styles.ecran} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+  // L'écran utilise le grand bandeau d'identité et conserve les champs modifiables.
+  return <View style={styles.ecran}>
+    {/* Le profil reprend le bandeau sombre et son bouton de déconnexion. */}
+    <EnTete mode="principal" titre={profil?.nom ?? utilisateur?.nom ?? 'Mon profil'} sousTitre="Mon profil" avatar={profil?.photo} onDeconnexion={() => setConfirmerDeconnexion(true)} />
+    {/* Le clavier évite le recouvrement et le formulaire reste défilable. */}
+    <KeyboardAvoidingView style={styles.conteneurFormulaire} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
     {/* ScrollView rend le formulaire accessible sur les petits écrans. */}
     <ScrollView contentContainerStyle={styles.contenu} keyboardShouldPersistTaps="handled">
       {/* La carte regroupe photo, champs et boutons. */}
@@ -153,45 +160,34 @@ export default function Profil() {
         {/* Ce bouton déclenche le sélecteur et son état de chargement. */}
         <Bouton titre="Changer la photo" chargement={chargementPhoto} onPress={() => void changerPhoto()} />
         {/* Les champs modifiables reflètent les valeurs du profil. */}
-        <ChampTexte label="Nom" placeholder="Votre nom" value={nom} onChangeText={setNom} autoCapitalize="words" />
-        <ChampTexte label="Téléphone" placeholder="Votre téléphone" value={telephone} onChangeText={setTelephone} keyboardType="phone-pad" />
+        <ChampTexte label="Nom" obligatoire placeholder="Votre nom" value={nom} onChangeText={setNom} autoCapitalize="words" />
+        <ChampTexte label="Téléphone" obligatoire placeholder="Votre téléphone" value={telephone} onChangeText={setTelephone} keyboardType="phone-pad" />
         {/* Les erreurs et confirmations apparaissent après les champs. */}
         {!!erreur && <View style={styles.bandeauErreur} accessibilityRole="alert"><Text style={styles.erreur}>{erreur}</Text></View>}
         {!!succes && <View style={styles.bandeauSucces} accessibilityRole="alert"><Text style={styles.succes}>{succes}</Text></View>}
         {/* Ce bouton enregistre les champs via PUT /api/profil. */}
         <Bouton titre="Enregistrer" chargement={enregistrement} onPress={() => void enregistrerProfil()} />
-        {/* La déconnexion reste distincte de l'enregistrement du profil. */}
-        <Bouton titre="Se déconnecter" variante="danger" onPress={() => setConfirmerDeconnexion(true)} />
       </Carte>
     </ScrollView>
-    {/* La fenêtre confirme l'action avant d'effacer la session. */}
-    <Modal visible={confirmerDeconnexion} transparent animationType="fade" onRequestClose={() => setConfirmerDeconnexion(false)}>
-      {/* Le voile centre la confirmation sur les plateformes mobiles et web. */}
-      <View style={styles.voile}>
-        {/* La carte propose une annulation et une confirmation explicites. */}
-        <Carte style={styles.confirmation}>
-          {/* Le titre demande une confirmation claire. */}
-          <Text style={styles.titreConfirmation}>Se déconnecter ?</Text>
-          {/* Le détail explique l'effet de cette action. */}
-          <Text style={styles.texteConfirmation}>Tu devras te reconnecter pour retrouver ton espace.</Text>
-          {/* L'action rouge ferme la session après validation. */}
-          <Bouton titre="Oui, me déconnecter" variante="danger" onPress={() => void deconnexion()} />
-          {/* L'action secondaire ferme la fenêtre sans changer la session. */}
-          <Bouton titre="Annuler" variante="secondaire" onPress={() => setConfirmerDeconnexion(false)} />
-        </Carte>
-      </View>
-    </Modal>
-  </KeyboardAvoidingView>;
+    </KeyboardAvoidingView>
+    {/* La confirmation centrée demande l'accord avant de fermer la session. */}
+    <FeuilleModale visible={confirmerDeconnexion} titre="Se déconnecter ?" placement="centre" onFermer={() => setConfirmerDeconnexion(false)} pied={<View style={styles.actionsConfirmation}><Bouton titre="Annuler" variante="secondaire" onPress={() => setConfirmerDeconnexion(false)} /><Bouton titre="Se déconnecter" variante="danger" onPress={() => void deconnexion()} /></View>}>
+      {/* Le détail rappelle que la session devra être ouverte à nouveau. */}
+      <Text style={styles.texteConfirmation}>Tu devras te reconnecter pour retrouver ton espace.</Text>
+    </FeuilleModale>
+  </View>;
 }
 
 // Les styles utilisent la palette des écrans d'authentification.
 const styles = StyleSheet.create({
   // L'écran occupe la surface disponible avec un fond doux.
-  ecran: { flex: 1, backgroundColor: couleurs.fond },
+  ecran: { flex: 1, width: '100%', backgroundColor: couleurs.fond },
+  // Le formulaire occupe l'espace disponible sous le bandeau.
+  conteneurFormulaire: { flex: 1 },
   // Le contenu est centré et peut défiler avec le clavier.
   contenu: { flexGrow: 1, padding: espacements.moyen, gap: espacements.moyen },
   // La carte limite la largeur du formulaire sur grand écran.
-  carte: { width: '100%', maxWidth: 480, alignSelf: 'center', alignItems: 'stretch', gap: espacements.moyen, borderRadius: 16 },
+  carte: { width: '100%', alignSelf: 'stretch', alignItems: 'stretch', gap: espacements.moyen, borderRadius: 16 },
   // Le titre reprend la couleur principale sombre.
   titre: { color: couleurs.texte, fontSize: taillesTexte.titre, fontWeight: '800', textAlign: 'center' },
   // Les erreurs disposent d'un fond distinct et d'un texte contrasté.
@@ -200,12 +196,8 @@ const styles = StyleSheet.create({
   // Le succès est affiché dans un bandeau vert doux.
   bandeauSucces: { padding: espacements.moyen, borderRadius: 12, backgroundColor: couleurs.vertClair },
   succes: { color: couleurs.succes, fontSize: taillesTexte.secondaire },
-  // Le voile assombrit le profil derrière la confirmation.
-  voile: { flex: 1, justifyContent: 'center', padding: espacements.moyen, backgroundColor: couleurs.voile },
-  // La fenêtre de confirmation garde une largeur confortable sur le web.
-  confirmation: { width: '100%', maxWidth: 420, alignSelf: 'center', gap: espacements.moyen },
-  // Le titre de confirmation utilise le bleu nuit.
-  titreConfirmation: { color: couleurs.principal, fontSize: taillesTexte.sousTitre, fontWeight: '700' },
+  // Les boutons de confirmation se partagent la largeur du panneau.
+  actionsConfirmation: { flexDirection: 'row', gap: espacements.petit },
   // Le texte explique brièvement l'action.
   texteConfirmation: { color: couleurs.texteSecondaire, fontSize: taillesTexte.secondaire, lineHeight: 22 },
 });

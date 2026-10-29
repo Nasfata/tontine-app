@@ -24,10 +24,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // La lecture est asynchrone, le contexte reste en chargement jusqu'à sa fin.
     async function restaurerSession() {
-      // Ce journal temporaire confirme que la restauration a bien commencé.
-      console.log('[AuthContext] Début du chargement de session.');
-      // Cette variable conserve l'utilisateur lu même avant le prochain rendu React.
-      let utilisateurCharge: Utilisateur | null = null;
       try {
         // Les deux valeurs sont lues séparément pour rester simples à inspecter.
         const jetonSauvegarde = await AsyncStorage.getItem('token');
@@ -35,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Une session n'est restaurée que si ses deux éléments sont présents.
         if (jetonSauvegarde && utilisateurSauvegarde) {
           // On convertit les données locales en objet utilisateur typé.
-          utilisateurCharge = JSON.parse(utilisateurSauvegarde) as Utilisateur;
+          const utilisateurCharge = JSON.parse(utilisateurSauvegarde) as Utilisateur;
           // On restaure le jeton et le profil de la session sauvegardée.
           setToken(jetonSauvegarde);
           setUtilisateur(utilisateurCharge);
@@ -46,8 +42,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Une donnée locale illisible est supprimée en arrière-plan pour repartir proprement.
         void AsyncStorage.multiRemove(['token', 'utilisateur']).catch((erreurNettoyage) => console.warn('[AuthContext] Nettoyage du stockage impossible :', erreurNettoyage));
       } finally {
-        // Ce journal temporaire indique la valeur d'utilisateur obtenue à la fin.
-        console.log('[AuthContext] Fin du chargement de session.', { utilisateur: utilisateurCharge });
         // La navigation peut décider de la destination une fois le stockage lu.
         setChargement(false);
       }

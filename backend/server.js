@@ -64,16 +64,16 @@ app.get('/test-db', async (req, res) => {
   try {
     // Envoie une requête SQL à MySQL et attend la réponse.
     // [rows] = on récupère le premier élément du résultat (les lignes de la table)
-    const [rows] = await db.query('SELECT * FROM Role');
+    const rows = await db.role.findMany();
 
     // Renvoie les lignes au navigateur, au format JSON
     res.json(rows);
   } catch (err) {
     // Si MySQL a un problème, on affiche l'erreur dans le terminal pour t'aider
-    console.error('Erreur MySQL :', err.message);
+    console.error('Erreur base de données :', err.message);
 
     // 500 = erreur serveur. On renvoie aussi le message pour que tu voies le souci
-    res.status(500).json({ erreur: err.message });
+    res.status(500).json({ erreur: 'Impossible de lire les rôles dans la base de données' });
   }
 });
 

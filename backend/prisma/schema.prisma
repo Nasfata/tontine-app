@@ -1,0 +1,111 @@
+// Ce générateur fabrique le client JavaScript utilisé dans les routes.
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Cette source indique à Prisma que la base est MySQL.
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Les valeurs correspondent exactement à l'ENUM de la table Tontine.
+enum Frequence {
+  quotidien
+  hebdomadaire
+  mensuel
+}
+
+// Cette table contient les rôles possibles dans une tontine.
+model Role {
+  code           String          @id @db.VarChar(20)
+  libelle        String          @db.VarChar(50)
+  niveau         Int
+  participations Participation[]
+
+  @@map("Role")
+}
+
+// Cette table contient les comptes et leurs données de profil.
+model Utilisateur {
+  id              Int             @id @default(autoincrement())
+  nom             String          @db.VarChar(100)
+  telephone       String          @unique @db.VarChar(20)
+  motDePasseHash  String          @map("mot_de_passe_hash") @db.VarChar(255)
+  photo           String?         @db.VarChar(255)
+  dateCreation    DateTime?       @default(now()) @map("date_creation") @db.DateTime(0)
+  participations  Participation[]
+
+  @@map("Utilisateur")
+}
+
+// Cette table décrit les tontines créées dans l'application.
+model Tontine {
+  id                 Int             @id @default(autoincrement())
+  nom                String          @db.VarChar(100)
+  montantCotisation  Decimal         @map("montant_cotisation") @db.Decimal(12, 2)
+  frequence          Frequence
+  nombreMembres      Int             @map("nombre_membres")
+  statut             String          @default("en_preparation") @db.VarChar(20)
+  dateDebut          DateTime?       @map("date_debut") @db.Date
+  regles             String?         @db.Text
+  participations     Participation[]
+  tours              Tour[]
+
+  @@map("Tontine")
+}
+
+// Cette table relie un compte à une tontine avec son rôle local.
+model Participation {
+  id               Int           @id @default(autoincrement())
+  utilisateurId    Int           @map("utilisateur_id")
+  tontineId        Int           @map("tontine_id")
+  roleCode         String        @default("membre") @map("role_code") @db.VarChar(20)
+  ordrePassage     Int?          @map("ordre_passage")
+  dateAdhesion     DateTime?     @default(now()) @map("date_adhesion") @db.DateTime(0)
+  utilisateur      Utilisateur   @relation(fields: [utilisateurId], references: [id])
+  tontine          Tontine       @relation(fields: [tontineId], references: [id])
+  role             Role          @relation(fields: [roleCode], references: [code])
+  cotisations      Cotisation[]  @relation("CotisationPayeur")
+  cotisationsValidees Cotisation[] @relation("CotisationValidateur")
+  toursBeneficiaire Tour[]        @relation("TourBeneficiaire")
+
+  @@unique([utilisateurId, tontineId])
+  @@map("Participation")
+}
+
+// Ce modèle décrit les tours déjà présents dans le schéma SQL fourni.
+model Tour {
+  id               Int             @id @default(autoincrement())
+  tontineId        Int             @map("tontine_id")
+  beneficiaireId   Int?            @map("beneficiaire_id")
+  numero           Int
+  datePrevue       DateTime        @map("date_prevue") @db.Date
+  montantCagnotte  Decimal         @default(0) @map("montant_cagnotte") @db.Decimal(12, 2)
+  statut           String          @default("a_venir") @db.VarChar(20)
+  dateRemise       DateTime?       @map("date_remise") @db.Date
+  tontine          Tontine         @relation(fields: [tontineId], references: [id])
+  beneficiaire     Participation? @relation("TourBeneficiaire", fields: [beneficiaireId], references: [id])
+  cotisations      Cotisation[]
+
+  @@map("Tour")
+}
+
+// Ce modèle décrit les cotisations déjà présentes dans le schéma SQL fourni.
+model Cotisation {
+  id                Int             @id @default(autoincrement())
+  participationId   Int             @map("participation_id")
+  tourId            Int             @map("tour_id")
+  montant           Decimal         @db.Decimal(12, 2)
+  dateEcheance      DateTime        @map("date_echeance") @db.Date
+  datePaiement      DateTime?       @map("date_paiement") @db.Date
+  statut            String          @default("non_paye") @db.VarChar(20)
+  preuveUrl         String?         @map("preuve_url") @db.VarChar(255)
+  noteRefus         String?         @map("note_refus") @db.Text
+  valideePar        Int?            @map("validee_par")
+  participation     Participation  @relation("CotisationPayeur", fields: [participationId], references: [id])
+  validateur        Participation? @relation("CotisationValidateur", fields: [valideePar], references: [id])
+  tour              Tour            @relation(fields: [tourId], references: [id])
+
+  @@map("Cotisation")
+}

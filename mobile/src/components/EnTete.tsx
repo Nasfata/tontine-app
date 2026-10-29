@@ -4,6 +4,8 @@ import { Image, Pressable, StyleSheet, Text, View, type ViewProps } from 'react-
 import { router } from 'expo-router';
 // Ionicons fournit les pictogrammes de retour et de déconnexion.
 import { Ionicons } from '@expo/vector-icons';
+// API_URL complète l'adresse des photos renvoyées avec un chemin relatif.
+import { API_URL } from '../config';
 // Le thème centralise les couleurs, espacements et rayons du guide.
 import { couleurs, espacements, rayons, taillesTexte } from '../theme';
 
@@ -26,7 +28,7 @@ type EnTeteProps = ViewProps & {
 };
 
 // EnTete affiche un grand bandeau d'identité ou un petit titre de page.
-export function EnTete({ titre, mode = 'page', sousTitre, avatar, onDeconnexion, retour = false, droite, style, ...proprietes }: EnTeteProps) {
+export function EnTete({ titre, mode = 'page', sousTitre, avatar, onDeconnexion, surAvatar,retour = false, droite, style, ...proprietes }: EnTeteProps) {
   // L'affichage principal reprend le bandeau sombre observé sur la capture.
   if (mode === 'principal') {
     // Le nom et son initiale restent utilisables même sans photo de profil.
@@ -34,7 +36,15 @@ export function EnTete({ titre, mode = 'page', sousTitre, avatar, onDeconnexion,
     // Le bandeau inclut avatar, identité, sous-titre et action de session.
     return <View {...proprietes} style={[styles.bandeau, style]}>
       {/* La photo ou l'initiale identifie la personne connectée. */}
-      {avatar ? <Image source={{ uri: avatar }} style={styles.avatar} resizeMode="cover" /> : <View style={styles.avatarInitiale}><Text style={styles.initiale}>{initiale}</Text></View>}
+            {/* L'avatar est cliquable : il ouvre l'écran Profil (ou l'action fournie). */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Voir mon profil"
+        onPress={surAvatar ?? (() => router.push('/profil'))}
+        style={({ pressed }) => pressed && styles.appuye}
+      >
+        {avatar ? <Image source={{ uri: avatar.startsWith('http') ? avatar : `${API_URL}${avatar}` }} style={styles.avatar} resizeMode="cover" /> : <View style={styles.avatarInitiale}><Text style={styles.initiale}>{initiale}</Text></View>}
+      </Pressable>
       {/* Le bloc de texte prend toute la place entre l'avatar et le bouton. */}
       <View style={styles.identite}>
         <Text numberOfLines={1} style={styles.nom}>{titre}</Text>

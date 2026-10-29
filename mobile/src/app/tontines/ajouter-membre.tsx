@@ -14,8 +14,8 @@ import { appelerApi, ErreurApi } from '../../api';
 import { Bouton } from '../../components/Bouton';
 import { Avatar } from '../../components/Avatar';
 import { Carte } from '../../components/Carte';
-// L'en-tête partagé présente le titre et l'action de retour.
-import { EnTete } from '../../components/EnTete';
+// La feuille modale reprend le panneau de formulaire des captures.
+import { FeuilleModale } from '../../components/FeuilleModale';
 import { ChampTexte } from '../../components/ChampTexte';
 // Le thème définit les messages et les espacements de cette page.
 import { couleurs, espacements, taillesTexte } from '../../theme';
@@ -168,11 +168,11 @@ export default function AjouterMembre() {
       setChargementContacts(false);
     }
   }
-  // L'écran reste défilable et évite le clavier mobile.
-  return <KeyboardAvoidingView style={styles.ecran} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-    {/* Le formulaire reprend la navigation sans barre native. */}
-    <EnTete titre="Ajouter un membre" retour style={styles.entete} />
-    {/* Le défilement garde la saisie manuelle accessible avec le clavier ouvert. */}
+  // La route existante s'affiche maintenant dans une feuille modale basse.
+  return <FeuilleModale visible titre="Ajouter un membre" onFermer={() => router.back()} pied={<Bouton titre="Ajouter" chargement={chargementAjout} onPress={() => void ajouterParTelephone()} />}>
+    {/* Le clavier et la liste restent utilisables dans le panneau. */}
+    <KeyboardAvoidingView style={styles.ecran} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    {/* Le défilement garde la saisie manuelle accessible sur petit écran. */}
     <ScrollView contentContainerStyle={styles.contenu} keyboardShouldPersistTaps="handled">
       {/* La carte contient l'action contacts et le formulaire manuel. */}
       <Carte style={styles.carte}>
@@ -183,9 +183,7 @@ export default function AjouterMembre() {
         {/* Le navigateur utilise seulement le parcours de saisie manuelle. */}
         {Platform.OS === 'web' && <Text style={styles.infoWeb}>Les contacts ne sont pas accessibles sur le Web. Tu peux saisir un numéro ci-dessous.</Text>}
         {/* Le champ manuel reste disponible sur toutes les plateformes. */}
-        <ChampTexte label="Téléphone" value={telephone} onChangeText={setTelephone} placeholder="Ex. +221 77 123 45 67" keyboardType="phone-pad" autoComplete="tel" returnKeyType="done" onSubmitEditing={() => void ajouterParTelephone()} />
-        {/* Le bouton manuel appelle l'endpoint d'ajout par numéro. */}
-        <Bouton titre="Ajouter" chargement={chargementAjout} onPress={() => void ajouterParTelephone()} />
+        <ChampTexte label="Téléphone" obligatoire value={telephone} onChangeText={setTelephone} placeholder="Ex. +221 77 123 45 67" keyboardType="phone-pad" autoComplete="tel" returnKeyType="done" onSubmitEditing={() => void ajouterParTelephone()} />
         {/* Les refus de permission et erreurs sont expliqués sous le formulaire. */}
         {!!erreur && <View style={[styles.bandeau, invitation ? styles.bandeauInvitation : styles.bandeauErreur]} accessibilityRole="alert"><Text style={invitation ? styles.texteInvitation : styles.texteErreur}>{erreur}</Text></View>}
         {/* Les confirmations et résultats sans correspondance sont affichés ici. */}
@@ -206,19 +204,18 @@ export default function AjouterMembre() {
         </View>)}
       </Carte>}
     </ScrollView>
-  </KeyboardAvoidingView>;
+    </KeyboardAvoidingView>
+  </FeuilleModale>;
 }
 
 // Ces styles reprennent la palette déjà utilisée dans les écrans d'authentification.
 const styles = StyleSheet.create({
-  // Le fond clair est commun aux plateformes.
-  ecran: { flex: 1, backgroundColor: couleurs.fond },
+  // La feuille modale fournit le fond blanc du formulaire.
+  ecran: { width: '100%' },
   // Le contenu est centré et défile avec le clavier.
   contenu: { flexGrow: 1, padding: espacements.moyen, gap: espacements.moyen },
-  // L'en-tête suit les marges latérales des cartes.
-  entete: { marginHorizontal: espacements.moyen },
   // Les cartes regroupent formulaire et suggestions.
-  carte: { width: '100%', maxWidth: 480, alignSelf: 'center', gap: espacements.moyen, borderRadius: 16 },
+  carte: { width: '100%', gap: espacements.moyen, borderRadius: 16 },
   // Le texte explicatif utilise la couleur secondaire.
   texte: { color: couleurs.texteSecondaire, fontSize: taillesTexte.secondaire, lineHeight: 22 },
   // Le navigateur affiche une note neutre au lieu d'une erreur.

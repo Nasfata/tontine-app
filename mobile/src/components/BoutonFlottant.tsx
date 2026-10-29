@@ -20,7 +20,13 @@ export function BoutonFlottant({ onPress, etiquette = 'Créer une tontine', styl
 // Ces styles fixent le bouton en bas à droite de son écran parent.
 const styles = StyleSheet.create({
   // Le cercle reste au-dessus de la barre d'onglets.
-  bouton: { position: 'absolute', right: 28, bottom: 126, width: 58, height: 58, justifyContent: 'center', alignItems: 'center', borderRadius: rayons.cercle, backgroundColor: couleurs.principal, shadowColor: couleurs.ombre, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 8 },
+  bouton: { 
+     position: 'absolute', right: 28, bottom: 24,
+     width: 58, height: 58, justifyContent: 'center',
+     alignItems: 'center', borderRadius: rayons.cercle,
+     backgroundColor: couleurs.principal, shadowColor: couleurs.ombre,
+     shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, 
+     shadowRadius: 12, elevation: 8 },
   // Une opacité brève confirme l'appui sans animation externe.
   appuye: { opacity: 0.75 },
 });

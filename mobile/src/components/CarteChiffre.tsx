@@ -24,7 +24,7 @@ export function CarteChiffre({ titre, valeur, icone, variante = 'claire' }: Cart
 // Ces règles gardent une grille souple sans étirer le contenu à l'infini.
 const styles = StyleSheet.create({
   // La carte prend une cellule disponible et s'adapte à la largeur parente.
-  carte: { flexGrow: 1, flexBasis: '45%', maxWidth: 560, minHeight: 132, justifyContent: 'space-between', gap: espacements.petit, padding: espacements.moyen, borderRadius: rayons.carte, ...ombres.carte },
+    carte: { flexGrow: 1, flexBasis: '45%', gap: espacements.petit, padding: 14, borderRadius: rayons.carte, ...ombres.carte },
   // La première tuile reprend le bleu nuit de la marque.
   sombre: { backgroundColor: couleurs.principal },
   // La deuxième tuile met une réussite en évidence en vert.

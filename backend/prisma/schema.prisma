@@ -1,4 +1,5 @@
 // Ce générateur fabrique le client JavaScript utilisé dans les routes.
+//commande pour executer les migration npm run prisma:migrate -- --name initial
 generator client {
   provider = "prisma-client-js"
 }

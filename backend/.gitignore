@@ -4,3 +4,4 @@ node_modules
 # Ne pas envoyer les secrets
 .env
 uploads
+preuves

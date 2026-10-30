@@ -74,7 +74,7 @@ function NavigationAuthentifiee() {
     <Stack.Screen name="connexion" />
     <Stack.Screen name="inscription" />
     <Stack.Screen name="(onglets)" />
-    {/* <Stack.Screen name="tontines/[id]" options={{ headerShown: false }} /> */}
+    <Stack.Screen name="tontines/[id]" options={{ headerShown: false }} />
     <Stack.Screen name="tontines/creer" options={{ presentation: 'transparentModal', headerShown: false, contentStyle: { backgroundColor: 'transparent' } }} />
     <Stack.Screen name="tontines/ajouter-membre" options={{ presentation: 'transparentModal', headerShown: false, contentStyle: { backgroundColor: 'transparent' } }} />
   </Stack></View></View>;

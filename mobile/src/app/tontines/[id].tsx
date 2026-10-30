@@ -7,24 +7,24 @@ import { router, useLocalSearchParams, type Href } from 'expo-router';
 // Ionicons fournit la flèche du bouton retour.
 import { Ionicons } from '@expo/vector-icons';
 // Le contexte donne la personne connectée et la déconnexion.
-import { useAuth } from '../../../AuthContext';
+import { useAuth } from '../../AuthContext';
 // appelerApi ajoute le jeton et lit la réponse de l'API.
-import { appelerApi } from '../../../api';
+import { appelerApi } from '../../api';
 // Les composants partagés assurent la cohérence visuelle des sections.
-import { Avatar } from '../../../components/Avatar';
-import { Badge } from '../../../components/Badge';
-import { Bouton } from '../../../components/Bouton';
-import { Carte } from '../../../components/Carte';
-import { CarteChiffre } from '../../../components/CarteChiffre';
-import { Chargement } from '../../../components/Chargement';
+import { Avatar } from '../../components/Avatar';
+import { Badge } from '../../components/Badge';
+import { Bouton } from '../../components/Bouton';
+import { Carte } from '../../components/Carte';
+import { CarteChiffre } from '../../components/CarteChiffre';
+import { Chargement } from '../../components/Chargement';
 // Le même bandeau que l'accueil.
-import { EnTete } from '../../../components/EnTete';
+import { EnTete } from '../../components/EnTete';
 // La confirmation de déconnexion est la même que sur l'accueil.
-import { FeuilleModale } from '../../../components/FeuilleModale';
+import { FeuilleModale } from '../../components/FeuilleModale';
 // Les libellés masquent les valeurs techniques reçues du backend.
-import { formaterMontant, libelleFrequence } from '../../../libelles';
+import { formaterMontant, libelleFrequence } from '../../libelles';
 // Les couleurs et espacements viennent du thème commun.
-import { couleurs, espacements, taillesTexte } from '../../../theme';
+import { couleurs, espacements, taillesTexte } from '../../theme';
 
 // Ce type représente les informations de la tontine renvoyées par l'API.
 type Tontine = { id: number; nom: string; montant_cotisation: number | string; frequence: string; nombre_membres: number; regles: string | null; statut: string };

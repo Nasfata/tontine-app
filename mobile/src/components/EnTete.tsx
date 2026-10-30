@@ -19,6 +19,8 @@ type EnTeteProps = ViewProps & {
   sousTitre?: string;
   // La photo est facultative et laisse place à une initiale si elle manque.
   avatar?: string | null;
+  // Cette action facultative remplace l'ouverture du profil au toucher.
+  surAvatar?: () => void;
   // Le parent gère la confirmation avant de fermer la session.
   onDeconnexion?: () => void;
   // Le bouton retour n'apparaît que sur les pages secondaires.
@@ -28,7 +30,7 @@ type EnTeteProps = ViewProps & {
 };
 
 // EnTete affiche un grand bandeau d'identité ou un petit titre de page.
-export function EnTete({ titre, mode = 'page', sousTitre, avatar, onDeconnexion, surAvatar,retour = false, droite, style, ...proprietes }: EnTeteProps) {
+export function EnTete({ titre, mode = 'page', sousTitre, avatar, onDeconnexion, surAvatar, retour = false, droite, style, ...proprietes }: EnTeteProps) {
   // L'affichage principal reprend le bandeau sombre observé sur la capture.
   if (mode === 'principal') {
     // Le nom et son initiale restent utilisables même sans photo de profil.

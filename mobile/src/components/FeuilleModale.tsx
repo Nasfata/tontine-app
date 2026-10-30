@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
   // Le mode confirmation centre le panneau sur le fond assombri.
   ecranCentre: { justifyContent: 'center', alignItems: 'center', padding: espacements.grand },
   // Le voile assombrit le contenu situé derrière la feuille.
-  voile: { ...StyleSheet.absoluteFillObject, backgroundColor: couleurs.voileModale },
+  voile: { ...StyleSheet.absoluteFill, backgroundColor: couleurs.voileModale },
   // La feuille peut couvrir presque tout l'écran sans étirement horizontal.
   feuille: {
     width: '100%',

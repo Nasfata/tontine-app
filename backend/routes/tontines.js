@@ -122,7 +122,7 @@ router.post('/:id/membres', async (req, res) => {
       if (participationExistante) return { erreur: 'Cette personne est déjà membre de la tontine', statut: 409 };
       await transaction.participation.create({ data: { utilisateurId: utilisateur.id, tontineId: tontine.id, roleCode: 'membre' } });
       return { succes: true };
-    }, { isolationLevel: 'Serializable' });
+    });
     if (resultat.erreur) return res.status(resultat.statut).json({ erreur: resultat.erreur, ...(resultat.invitation ? { invitation: true } : {}) });
     return res.status(201).json({ message: 'Membre ajouté avec succès' });
   } catch (err) {

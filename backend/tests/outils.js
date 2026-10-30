@@ -8,6 +8,9 @@ const { spawn } = require('node:child_process');
 const net = require('node:net');
 // path construit des chemins de dossiers.
 const path = require('node:path');
+// fs gère les fichiers et os donne le dossier temporaire du système.
+const fs = require('node:fs/promises');
+const os = require('node:os');
 // randomInt fabrique des nombres aléatoires pour les numéros de téléphone.
 const { randomInt } = require('node:crypto');
 // Client Prisma, utilisé ici pour modifier directement la base de test.
@@ -42,10 +45,12 @@ function trouverPortLibre() {
 async function demarrerServeur() {
   verifierBaseDeTest();
   const port = await trouverPortLibre();
-  // On lance "node server.js" dans le dossier backend, avec notre port et notre base de test.
+  // Dossier temporaire pour les preuves de ce serveur de test.
+  const dossierPreuves = await fs.mkdtemp(path.join(os.tmpdir(), 'tontine-preuves-'));
+  // On lance "node server.js" dans le dossier backend, avec notre port, notre base et notre dossier de preuves.
   const processus = spawn(process.execPath, ['server.js'], {
     cwd: path.join(__dirname, '..'),
-    env: { ...process.env, PORT: String(port), DATABASE_URL: urlTest },
+    env: { ...process.env, PORT: String(port), DATABASE_URL: urlTest, PREUVES_DOSSIER: dossierPreuves },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   // On garde tout ce que le serveur écrit, pour l'afficher s'il plante.
@@ -60,18 +65,27 @@ async function demarrerServeur() {
     processus.stderr.on('data', (morceau) => { sortie += morceau; });
     processus.on('exit', (code) => { clearTimeout(delai); reject(new Error(`Le serveur s'est arrêté (code ${code}) :\n${sortie}`)); });
   });
-  // On renvoie l'adresse du serveur et une fonction pour l'arrêter.
-  return { url: `http://127.0.0.1:${port}`, arreter: () => processus.kill() };
+  // On renvoie l'adresse, le dossier des preuves et une fonction pour tout arrêter et nettoyer.
+  return {
+    url: `http://127.0.0.1:${port}`,
+    dossierPreuves,
+    arreter: () => {
+      processus.kill();
+      fs.rm(dossierPreuves, { recursive: true, force: true }).catch(() => {});
+    },
+  };
 }
 
 // Envoie une requête HTTP et renvoie { statut, donnees } (même pour les erreurs).
-async function appeler(serveur, methode, chemin, { jeton, corps } = {}) {
-  const entetes = { 'Content-Type': 'application/json' };
+// "corps" est envoyé en JSON ; "formulaire" (un FormData) est envoyé en multipart, pour les fichiers.
+async function appeler(serveur, methode, chemin, { jeton, corps, formulaire } = {}) {
+  // Avec un formulaire, fetch fabrique lui-même l'en-tête multipart (avec sa "frontière") : on n'y touche pas.
+  const entetes = formulaire ? {} : { 'Content-Type': 'application/json' };
   if (jeton) entetes.Authorization = `Bearer ${jeton}`;
   const reponse = await fetch(`${serveur.url}${chemin}`, {
     method: methode,
     headers: entetes,
-    body: corps === undefined ? undefined : JSON.stringify(corps),
+    body: formulaire ?? (corps === undefined ? undefined : JSON.stringify(corps)),
   });
   // Si la réponse n'est pas du JSON, on renvoie un objet vide.
   const donnees = await reponse.json().catch(() => ({}));
@@ -89,10 +103,10 @@ async function creerCompte(serveur, nom) {
 }
 
 // Crée une tontine dont "gerant" est le créateur, et renvoie son identifiant.
-async function creerTontine(serveur, gerant, nombreMembres = 3) {
+async function creerTontine(serveur, gerant, nombreMembres = 3, frequence = 'mensuel') {
   const { statut, donnees } = await appeler(serveur, 'POST', '/api/tontines', {
     jeton: gerant.jeton,
-    corps: { nom: 'Tontine de test', montant_cotisation: 5000, frequence: 'mensuel', nombre_membres: nombreMembres },
+    corps: { nom: 'Tontine de test', montant_cotisation: 5000, frequence, nombre_membres: nombreMembres },
   });
   if (statut !== 201) throw new Error(`Création de tontine impossible (${statut}) : ${JSON.stringify(donnees)}`);
   return donnees.id;
@@ -113,4 +127,16 @@ function ouvrirPrisma() {
   return new PrismaClient({ datasourceUrl: urlTest });
 }
 
-module.exports = { demarrerServeur, appeler, creerCompte, creerTontine, ajouterMembre, ouvrirPrisma };
+// Crée une tontine déjà démarrée : gérant + membres, ordre défini (gérant en premier), puis démarrage.
+async function creerTontineDemarree(serveur, gerant, membres, dateDebut, frequence = 'mensuel') {
+  const idTontine = await creerTontine(serveur, gerant, membres.length + 1, frequence);
+  for (const membre of membres) await ajouterMembre(serveur, gerant, idTontine, membre);
+  const ordre = [gerant.id, ...membres.map((membre) => membre.id)];
+  const definition = await appeler(serveur, 'PUT', `/api/tontines/${idTontine}/ordre`, { jeton: gerant.jeton, corps: { ordre } });
+  if (definition.statut !== 200) throw new Error(`Définition de l'ordre impossible (${definition.statut}) : ${JSON.stringify(definition.donnees)}`);
+  const demarrage = await appeler(serveur, 'POST', `/api/tontines/${idTontine}/demarrer`, { jeton: gerant.jeton, corps: { date_debut: dateDebut } });
+  if (demarrage.statut !== 201) throw new Error(`Démarrage impossible (${demarrage.statut}) : ${JSON.stringify(demarrage.donnees)}`);
+  return idTontine;
+}
+
+module.exports = { demarrerServeur, appeler, creerCompte, creerTontine, ajouterMembre, creerTontineDemarree, ouvrirPrisma };

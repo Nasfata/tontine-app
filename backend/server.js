@@ -39,6 +39,12 @@ const routesTontines = require('./routes/tontines');
 // Branche les routes sous /api/tontines.
 app.use('/api/tontines', routesTontines);
 
+// Importe les routes de l'ordre de passage des bénéficiaires.
+const routesBeneficiaires = require('./routes/beneficiaires');
+
+// Branche-les aussi sous /api/tontines : "/:id/ordre" devient "/api/tontines/:id/ordre".
+app.use('/api/tontines', routesBeneficiaires);
+
 // Importe les routes de correspondance de contacts.
 const routesContacts = require('./routes/contacts');
 

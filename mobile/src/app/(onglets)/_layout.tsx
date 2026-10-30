@@ -13,9 +13,6 @@ export default function OngletsLayout() {
   return <View style={styles.conteneur}><Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: couleurs.principal, tabBarInactiveTintColor: couleurs.inactif, tabBarStyle: styles.barre, tabBarLabelStyle: styles.libelle, sceneStyle: styles.scene }}>
     {/* Le premier onglet présente les tontines de l'utilisateur. */}
     <Tabs.Screen name="accueil" options={{ title: 'Tontines', tabBarLabel: ({ focused, color }) => <Text style={[styles.libelle, { color, fontWeight: focused ? '800' : '600' }]}>Tontines</Text>, tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? 'people' : 'people-outline'} color={typeof color === 'string' ? color : couleurs.principal} size={22} /> }} />
-    {/* Le profil reste accessible en permanence dans la barre du bas. */}
-    {/* Profil : n est pas accessible via l'avatar, sans onglet dans la barre du bas. */}
-    <Tabs.Screen name="profil" options={{ href: null, title: 'Mon profil' }} />
   </Tabs></View>;
 }
 

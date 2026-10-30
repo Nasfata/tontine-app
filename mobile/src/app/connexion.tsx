@@ -51,7 +51,7 @@ export default function Connexion() {
     <ScrollView contentContainerStyle={styles.contenu} keyboardShouldPersistTaps="handled">
       {/* Le logo et le nom occupent le haut du fond bleu nuit. */}
       <View style={styles.marque}><View style={styles.logo}><Ionicons name="people-outline" size={42} color={couleurs.carte} /></View><Text style={styles.titre}>Tontine</Text><Text style={styles.sousTitre}>Gestion de tontines</Text></View>
-      {/* La carte claire remonte depuis le bas et porte le formulaire. */}
+      {/* La carte claire se place juste sous le logo et descend jusqu'au bas de l'écran. */}
       <Carte style={styles.carte}>
         {/* Le titre sépare l'identité de la zone de connexion. */}
         <Text style={styles.titreFormulaire}>Connexion</Text>
@@ -74,10 +74,10 @@ export default function Connexion() {
 const styles = StyleSheet.create({
   // L'écran occupe toute la surface disponible.
   ecran: { flex: 1, width: '100%', backgroundColor: couleurs.principal },
-  // Le logo reste en haut et la carte s'aligne vers le bas.
-  contenu: { flexGrow: 1, justifyContent: 'space-between', paddingTop: 48 },
-  // La carte blanche prend toute la largeur au bas de l'écran.
-  carte: { width: '100%', alignSelf: 'stretch', gap: espacements.moyen, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderBottomLeftRadius: 0, borderBottomRightRadius: 0, paddingTop: 28, paddingHorizontal: espacements.grand, paddingBottom: espacements.grand },
+  // Le contenu s'empile depuis le haut : le logo, puis la carte juste en dessous.
+  contenu: { flexGrow: 1, justifyContent: 'flex-start', paddingTop: 48 },
+  // La carte blanche grandit pour remplir le reste de l'écran, jusqu'en bas.
+  carte: { flex: 1, width: '100%', alignSelf: 'stretch', gap: espacements.moyen, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderBottomLeftRadius: 0, borderBottomRightRadius: 0, paddingTop: 28, paddingHorizontal: espacements.grand, paddingBottom: espacements.grand },
   // Le logo et le nom de marque sont centrés dans le fond nuit.
   marque: { alignItems: 'center', gap: espacements.petit, paddingHorizontal: espacements.moyen, paddingBottom: espacements.grand },
   // Le carré arrondi donne une silhouette au logo sans nouvel asset.

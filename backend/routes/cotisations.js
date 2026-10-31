@@ -7,7 +7,7 @@ const multer = require('multer');
 // db est le client Prisma, notre porte d'entrée vers MySQL.
 const db = require('../db');
 // Ce middleware vérifie le jeton de connexion et remplit req.utilisateurId.
-const verifierToken = require('../middleware/auth');
+const verifierToken = require('../middleware/verifierAuthentification');
 // Cette fonction renvoie le rôle de la personne dans une tontine (null si elle n'y participe pas).
 const { verifierRole } = require('../utils/roles');
 // Fonctions de validation partagées.

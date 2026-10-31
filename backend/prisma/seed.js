@@ -31,3 +31,5 @@ async function initialiserRoles() {
 
 // Lance la préparation des rôles sans supprimer les données existantes.
 initialiserRoles();
+
+//cmd pour executer le seeder node prisma/seed.js

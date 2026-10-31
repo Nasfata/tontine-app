@@ -128,6 +128,45 @@ Accessible à tout participant. Réponse 200 : même forme que la réponse du d�
 - **Ajout de membre simultané.** La route d'ajout de membre (`depots/tontines.depot.js`, `ajouterMembre`) ne pose pas de verrou : un ajout qui arrive pendant un `PUT /ordre` n'est pas bloqué. Le nouveau membre n'a alors pas d'ordre, `ordre_defini` repasse à `false` et le démarrage est refusé (400) : aucun dégât silencieux. Cette route peut aussi dépasser `nombre_membres` si deux ajouts arrivent en même temps ; à vérifier avec l'auteure de la route.
 - **Verrou de tontine.** Il est testé sur MySQL uniquement. Si la production est sous TiDB, à confirmer.
 
+## 4.3 Remise de la cagnotte
+
+L'application ne transfère jamais d'argent. Le gérant indique que la cagnotte a été remise au bénéficiaire en dehors de l'application, et le tour suivant démarre.
+
+### Route
+
+`POST /api/tontines/:id/tours/:numero/remise` : réservée au gérant, sans corps de requête.
+
+### Conditions
+
+- la tontine est active ;
+- le tour demandé est le tour en cours ;
+- toutes les cotisations du tour sont validées (statut `paye`), bénéficiaire compris.
+  Une cotisation non payée, refusée ou seulement déclarée bloque la remise.
+
+### Effets (dans une seule transaction, tontine verrouillée par `FOR UPDATE`)
+
+1. le tour passe à `complete` et sa `date_remise` est le jour même ;
+2. le tour suivant passe à `en_cours` ;
+3. si c'était le dernier tour, la tontine passe à `termine` et il n'y a plus de tour en cours.
+
+La réponse est `200` avec `{ message: 'Remise enregistrée' }` et le calendrier à jour.
+
+### Erreurs
+
+| Code | Cas |
+|------|-----|
+| 401 | pas de jeton |
+| 400 | identifiant de tontine ou numéro de tour invalide |
+| 403 | non-participant ou simple membre |
+| 404 | tour introuvable, ou tontine introuvable |
+| 409 | tontine non active, tour qui n'est pas le tour en cours, cotisations non payées ou en attente, remise déjà enregistrée |
+
+### Choix assumés
+
+- Pas d'annulation d'une remise : une remise est définitive.
+- Pas de confirmation par le bénéficiaire en V1.
+- Deux clics simultanés : un seul est accepté (200), l'autre reçoit 409.
+
 ## À venir
 
-- 4.3 : marquer la remise de la cagnotte et faire avancer le tour en cours.
+Module 5 : administration et transparence (tableau de bord, suivi des paiements et des tours, rappels).

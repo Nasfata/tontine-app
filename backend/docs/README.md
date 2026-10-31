@@ -55,11 +55,12 @@ Les tests démarrent le vrai serveur sur une **base séparée** (`tontine_test`)
 |---|---|---|
 | `tests/beneficiaires.test.js` | 4.1 Ordre de passage | 20 |
 | `tests/demarrage.test.js` | 4.2 Démarrage et calendrier | 19 |
+| tests/remise.test.js | 4.3 Remise de la cagnotte | 19 |
 | `tests/cotisations.test.js` | 3.1 et 3.4 Consultation, historique, retards | 18 |
 | `tests/declaration.test.js` | 3.2 Déclaration de paiement | 23 |
 | `tests/preuve.test.js` | Consultation d'une preuve | 11 |
 | `tests/validation.test.js` | 3.3 Valider ou refuser un paiement | 19 |
-| **Total** | | **110** |
+| **Total** | | **129** |
 
 `tests/outils.js` contient les outils partagés (démarrage du serveur, création de comptes et de tontines, envoi de requêtes).
 
@@ -75,7 +76,7 @@ Les tests démarrent le vrai serveur sur une **base séparée** (`tontine_test`)
 ### Lancement, depuis `backend/`
 
 ```
-node --test tests/beneficiaires.test.js tests/demarrage.test.js tests/cotisations.test.js tests/declaration.test.js tests/preuve.test.js tests/validation.test.js
+node --test tests/beneficiaires.test.js tests/demarrage.test.js tests/cotisations.test.js tests/declaration.test.js tests/preuve.test.js tests/validation.test.js tests/remise.test.js
 ```
 
 Les fichiers de tests tournent en parallèle sans problème depuis que l'ajout de membre n'utilise plus `Serializable`. Si des erreurs 500 apparaissent de façon aléatoire, ajouter `--test-concurrency=1` pour les exécuter un par un.

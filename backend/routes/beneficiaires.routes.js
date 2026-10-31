@@ -10,6 +10,7 @@ routeur.get('/:id/ordre', controleurBeneficiaires.lireOrdre);
 routeur.put('/:id/ordre', controleurBeneficiaires.definirOrdre);
 routeur.post('/:id/demarrer', controleurBeneficiaires.demarrerTontine);
 routeur.get('/:id/tours', controleurBeneficiaires.lireCalendrier);
+routeur.post('/:id/tours/:numero/remise', controleurBeneficiaires.marquerRemise);
 
 // L'application monte ce routeur sous /api/tontines.
 module.exports = routeur;

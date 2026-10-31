@@ -173,5 +173,38 @@ async function lireCalendrier(utilisateurId, tontineIdBrut) {
   return formaterCalendrier(tontine, await depot.listerTours(tontineId));
 }
 
+// Cette fonction enregistre la remise de la cagnotte du tour en cours et fait avancer la tontine.
+async function marquerRemise(utilisateurId, tontineIdBrut, numeroBrut) {
+  const tontineId = exigerIdentifiant(tontineIdBrut);
+  await exigerGerant(utilisateurId, tontineId);
+  const numero = lireIdentifiant(numeroBrut);
+  if (!numero) throw new DonneesInvalides('Numéro de tour invalide');
+
+  return depot.dansTransaction(async (transaction) => {
+    // Le verrou fait attendre un second appel simultané : il verra le tour déjà terminé et recevra le refus 409.
+    const verrou = await depot.verrouillerTontine(tontineId, transaction);
+    if (!verrou) throw new NonTrouve('Tontine introuvable');
+    const tour = await depot.trouverTourParNumero(tontineId, numero, transaction);
+    if (!tour) throw new NonTrouve('Tour introuvable');
+    if (verrou.statut !== 'actif') throw new Conflit('La tontine n’est pas active');
+    // Seul le tour en cours peut être remis : pas de saut de tour.
+    if (tour.statut !== 'en_cours') throw new Conflit('Ce tour n’est pas le tour en cours');
+
+    // Toute la cagnotte doit être réunie : chaque membre, bénéficiaire compris, a une cotisation validée.
+    const restantes = await depot.compterCotisationsNonPayees(tour.id, transaction);
+    if (restantes > 0) throw new Conflit(`Il reste ${restantes} cotisation(s) non payée(s) ou en attente de validation`);
+
+    // Le tour se termine ; si l'écriture ne modifie rien, un autre appel l'a terminé juste avant.
+    const terminees = await depot.terminerTour(tour.id, debutDeJournee(), transaction);
+    if (terminees === 0) throw new Conflit('Ce tour n’est pas le tour en cours');
+    // Le tour suivant démarre ; s'il n'y en a pas, c'était le dernier et la tontine est terminée.
+    const suivants = await depot.demarrerTour(tontineId, numero + 1, transaction);
+    if (suivants === 0) await depot.terminerTontine(tontineId, transaction);
+
+    const tontine = await depot.trouverTontine(tontineId, transaction);
+    return { message: 'Remise enregistrée', ...formaterCalendrier(tontine, await depot.listerTours(tontineId, transaction)) };
+  });
+}
+
 // Le contrôleur appelle ces opérations sans connaître Prisma.
-module.exports = { lireOrdre, definirOrdre, demarrerTontine, lireCalendrier };
+module.exports = { lireOrdre, definirOrdre, demarrerTontine, lireCalendrier, marquerRemise };

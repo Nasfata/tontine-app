@@ -32,5 +32,11 @@ async function lireCalendrier(req, res) {
   catch (erreur) { return erreurServeur(res, erreur, 'Erreur lecture calendrier :', 'Erreur serveur lors de la lecture du calendrier'); }
 }
 
+// Cette fonction enregistre la remise de la cagnotte du tour demandé par le gérant.
+async function marquerRemise(req, res) {
+  try { return res.json(await serviceBeneficiaires.marquerRemise(req.utilisateurId, req.params.id, req.params.numero)); }
+  catch (erreur) { return erreurServeur(res, erreur, 'Erreur remise cagnotte :', 'Erreur serveur lors de l’enregistrement de la remise'); }
+}
+
 // Le routeur associe ces actions aux chemins HTTP.
-module.exports = { lireOrdre, definirOrdre, demarrerTontine, lireCalendrier };
+module.exports = { lireOrdre, definirOrdre, demarrerTontine, lireCalendrier, marquerRemise };

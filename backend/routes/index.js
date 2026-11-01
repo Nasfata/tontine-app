@@ -9,6 +9,7 @@ routeur.use('/contacts', require('./contacts.routes'));
 routeur.use('/tontines', require('./tontines.routes'));
 routeur.use('/tontines', require('./beneficiaires.routes'));
 routeur.use('/tontines', require('./cotisations.routes'));
+routeur.use('/tontines', require('./tableauDeBord.routes'));
 
 // L'application monte ce routeur sous /api.
 module.exports = routeur;

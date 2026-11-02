@@ -41,8 +41,51 @@ L'application ne transfère jamais d'argent. Ce module est en **lecture seule** 
 
 `routes/tableauDeBord.routes.js`, `controleurs/tableauDeBord.controleur.js`, `services/tableauDeBord.service.js`, `depots/tableauDeBord.depot.js`, `tests/tableauDeBord.test.js` (12 tests).
 
-## À venir
+## 5.2 Suivi des paiements par membre
 
-- 5.2 Suivi des paiements par membre (gérant).
-- 5.3 Progression de chaque tour dans le calendrier.
-- 5.4 Rappels par notification dans l'application (nouvelle table à valider avec Nafsata), avec d'autres canaux plus tard.
+### Route
+
+`GET /api/tontines/:id/suivi-paiements?tour=<numéro>` : **réservée au gérant** (403 pour un simple membre ou un non-participant). Le paramètre `tour` est facultatif et vaut par défaut le tour en cours.
+
+### Réponse
+
+```json
+{
+  "tontine_id": 1,
+  "statut": "actif",
+  "tour": { "numero": 1, "statut": "en_cours", "date_prevue": "2031-01-31" },
+  "membres": [
+    {
+      "utilisateur_id": 7,
+      "nom": "Moussa",
+      "cotisation": {
+        "cotisation_id": 12, "statut": "non_paye", "montant": "5000",
+        "date_echeance": "2031-01-31", "date_paiement": null, "note_refus": null,
+        "a_une_preuve": false, "en_retard": true
+      },
+      "bilan": { "payees": 0, "total": 3, "en_retard": 1 }
+    }
+  ]
+}
+```
+
+### Règles
+
+- `cotisation` concerne le tour demandé ; `bilan` couvre toutes les cotisations du membre dans la tontine.
+- `en_retard` : statut `non_paye` ou `refuse`, échéance passée (date en UTC).
+- Le chemin du fichier de preuve n'est jamais exposé, seulement `a_une_preuve`.
+- Tri : les membres en retard d'abord, puis par nom.
+- Avant le démarrage, ou après la fin de la tontine sans paramètre : `tour` vaut `null` et chaque `cotisation` vaut `null` (le bilan reste calculé). Après la fin, `?tour=N` donne l'historique.
+
+### Erreurs
+
+| Code | Cas |
+|------|-----|
+| 401 | pas de jeton |
+| 400 | identifiant invalide, ou `tour` qui n'est pas un entier positif |
+| 403 | simple membre ou non-participant |
+| 404 | tour demandé introuvable |
+
+### Fichiers
+
+`routes/suiviPaiements.routes.js`, `controleurs/suiviPaiements.controleur.js`, `services/suiviPaiements.service.js`, `depots/suiviPaiements.depot.js`, `tests/suiviPaiements.test.js` (14 tests).

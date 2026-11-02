@@ -32,7 +32,7 @@ describe('Module 5.1 : tableau de bord', () => {
     assert.equal(statut, 200);
   };
   const valider = (idTontine, gerant, compte, numero) => decider(idTontine, gerant, compte, numero, { decision: 'valider' });
-  const refuser = (idTontine, gerant, compte, numero) => decider(idTontine, gerant, compte, numero, { decision: 'refuser', motif: 'Photo illisible' });
+  const refuser = (idTontine, gerant, compte, numero) => decider(idTontine, gerant, compte, numero, { decision: 'refuser', note: 'Photo illisible' });
   // Chaque compte déclare sa cotisation du tour, puis le gérant la valide.
   const payer = async (idTontine, gerant, comptes, numero) => {
     for (const compte of comptes) {

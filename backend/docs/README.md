@@ -55,13 +55,14 @@ Les tests démarrent le vrai serveur sur une **base séparée** (`tontine_test`)
 |---|---|---|
 | `tests/beneficiaires.test.js` | 4.1 Ordre de passage | 20 |
 | `tests/demarrage.test.js` | 4.2 Démarrage et calendrier | 19 |
-| tests/remise.test.js | 4.3 Remise de la cagnotte | 19 |
+| `tests/remise.test.js` | 4.3 Remise de la cagnotte | 19 |
 | `tests/cotisations.test.js` | 3.1 et 3.4 Consultation, historique, retards | 18 |
 | `tests/declaration.test.js` | 3.2 Déclaration de paiement | 23 |
 | `tests/preuve.test.js` | Consultation d'une preuve | 11 |
 | `tests/validation.test.js` | 3.3 Valider ou refuser un paiement | 19 |
 | `tests/tableauDeBord.test.js` | 5.1 Tableau de bord | 12 |
-| **Total** | | **141** |
+| `tests/suiviPaiements.test.js` | 5.2 Suivi des paiements | 14 |
+| **Total** | | **155** |
 
 `tests/outils.js` contient les outils partagés (démarrage du serveur, création de comptes et de tontines, envoi de requêtes).
 

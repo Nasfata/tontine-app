@@ -1,7 +1,14 @@
 # Module 3 : cotisations et paiements
 
-Code : `routes/cotisations.js`, `utils/stockagePreuves.js`, `utils/validation.js`.
-Tests : `tests/cotisations.test.js`, `tests/declaration.test.js`, `tests/preuve.test.js` , `tests/validation.test.js`.
+Code (voir « Architecture » dans le README) :
+- `routes/cotisations.routes.js` : chemins HTTP ;
+- `middleware/recevoirPreuve.js` : réception de la photo de preuve (5 Mo maximum, champ `preuve`) ;
+- `controleurs/cotisations.controleur.js` : contrôle d'accès, lecture de la requête, réponse et en-têtes de la preuve ;
+- `services/cotisations.service.js` : droits, filtres, calcul du retard, règles de changement de statut ;
+- `depots/cotisations.depot.js` : requêtes Prisma ;
+- `utils/stockagePreuves.js` : fichiers de preuve ; `utils/validation.js` : identifiants et dates.
+
+Tests : `tests/cotisations.test.js`, `tests/declaration.test.js`, `tests/preuve.test.js`, `tests/validation.test.js`.
 
 ## Principe
 
@@ -72,6 +79,7 @@ Règles :
 - La déclaration passe le statut à `en_attente`, enregistre la date du jour dans `date_paiement`, et efface l'ancien motif de refus. Une nouvelle déclaration **remplace** la précédente : l'ancienne preuve est supprimée, même si la nouvelle déclaration n'en contient pas.
 - Deux clics simultanés : une seule déclaration est acceptée (l'autre reçoit 409) et un seul fichier est conservé.
 - Si une vérification échoue, aucun fichier n'est écrit sur le disque.
+- Le contrôle de participation a lieu **avant** la lecture du fichier : un inconnu ne peut pas faire envoyer 5 Mo pour rien.
 
 Réponse 200 : la cotisation mise à jour (même forme qu'un élément de la liste).
 
@@ -96,20 +104,6 @@ Accessible au **propriétaire** de la cotisation et au **gérant** de la tontine
 
 Le jeton est lu dans l'en-tête `Authorization` : côté web, l'application doit télécharger l'image avec la requête authentifiée puis l'afficher, car une balise `<img>` ne peut pas envoyer d'en-tête.
 
-## Stockage des preuves
-
-- Les fichiers sont rangés dans `backend/preuves/` (ou `PREUVES_DOSSIER`), **hors de `uploads/`** qui est public. Ce dossier est ignoré par Git (`backend/.gitignore`).
-- Le nom est fabriqué par le serveur : `cot-<id de la cotisation>-<horodatage>.<extension>`. La colonne `Cotisation.preuveUrl` contient ce **nom de fichier**, pas une URL.
-- La lecture n'utilise que le nom du fichier (sans chemin) : une valeur piégée comme `../../.env` ne permet jamais de sortir du dossier des preuves.
-- Toute la gestion des fichiers est dans `utils/stockagePreuves.js`. Si l'équipe adopte un stockage externe, seul ce fichier est à remplacer.
-
-## Limites et décisions en attente
-
-- **Stockage sur disque et hébergement.** Sur un hébergeur à disque éphémère (comme Render sans disque persistant), les fichiers sont perdus à chaque redéploiement alors que la base garde leur nom. La route de consultation signale alors proprement « plus disponible ». Choix du stockage à décider avec l'équipe.
-- **Pas de montant déclaré ni de référence de paiement en V1** : `Cotisation` n'a pas ces colonnes, et le cahier de scénarios place le rapprochement avec justificatifs en V2.
-- **Le gérant peut valider sa propre déclaration**, puisqu'il est aussi membre et seul validateur en V1. Le rôle Trésorier (V2) corrigera ce point.
-- Les photos HEIC (iPhone) sont refusées : l'application mobile doit les convertir en JPEG avant l'envoi.
-
 ## `POST /api/tontines/:id/cotisations/:cotisationId/validation`
 
 Le gérant valide ou refuse une déclaration de paiement.
@@ -124,7 +118,7 @@ Règles :
 - Seul le **gérant** décide. Il peut valider sa propre déclaration (voir les limites).
 - Seule une cotisation `en_attente` peut être décidée, dans une tontine `actif`.
 - **Valider** : le statut passe à `paye`.
-- **Refuser** : le statut passe à `refuse`, le motif est enregistré dans `note_refus`, et `date_paiement` est effacée puisque le paiement n'est pas reconnu. Le membre peut alors redéclarer (voir la déclaration ci-dessus).
+- **Refuser** : le statut passe à `refuse`, le motif est enregistré dans `note_refus`, et `date_paiement` est effacée puisque le paiement n'est pas reconnu. Le membre peut alors redéclarer.
 - La **preuve est conservée** dans les deux cas : elle reste lisible par le gérant et par le membre, et n'est remplacée qu'à la redéclaration.
 - Dans les deux cas, la participation du gérant qui décide est enregistrée dans `Cotisation.valideePar` (c'est un identifiant de **participation**, pas de compte). L'API ne l'expose pas encore.
 - Deux décisions simultanées : une seule est acceptée, l'autre reçoit 409.
@@ -147,6 +141,20 @@ non_paye ──déclaration──▶ en_attente ──valider──▶ paye
 ```
 
 Une cotisation `paye` est définitive. Une cotisation `refuse` peut être redéclarée autant de fois que nécessaire.
+
+## Stockage des preuves
+
+- Les fichiers sont rangés dans `backend/preuves/` (ou `PREUVES_DOSSIER`), **hors de `uploads/`** qui est public. Ce dossier est ignoré par Git (`backend/.gitignore`).
+- Le nom est fabriqué par le serveur : `cot-<id de la cotisation>-<horodatage>.<extension>`. La colonne `Cotisation.preuveUrl` contient ce **nom de fichier**, pas une URL.
+- La lecture n'utilise que le nom du fichier (sans chemin) : une valeur piégée comme `../../.env` ne permet jamais de sortir du dossier des preuves.
+- Toute la gestion des fichiers est dans `utils/stockagePreuves.js`. Si l'équipe adopte un stockage externe, seul ce fichier est à remplacer.
+
+## Limites et décisions en attente
+
+- **Stockage sur disque et hébergement.** Sur un hébergeur à disque éphémère (comme Render sans disque persistant), les fichiers sont perdus à chaque redéploiement alors que la base garde leur nom. La route de consultation signale alors proprement « plus disponible ». Choix du stockage à décider avec l'équipe.
+- **Pas de montant déclaré ni de référence de paiement en V1** : `Cotisation` n'a pas ces colonnes, et le cahier de scénarios place le rapprochement avec justificatifs en V2.
+- **Le gérant peut valider sa propre déclaration**, puisqu'il est aussi membre et seul validateur en V1. Le rôle Trésorier (V2) corrigera ce point.
+- Les photos HEIC (iPhone) sont refusées : l'application mobile doit les convertir en JPEG avant l'envoi.
 
 ## À venir
 
